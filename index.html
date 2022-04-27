@@ -1,0 +1,413 @@
+<!-- <todo>
+
+    채팅방 이름 head bar로 옮기기,
+    햄버거 버튼(?) 왼쪽에도 달아서 채팅방 목록 마음대로 펼치기.
+
+    ajax 이용해서 채팅 수신하기.
+    채팅방 선택 버튼 활성화 시키기.
+    오른쪽 햄버거 버튼(설정) 만들기.. 등등.. 많다..
+</todo> -->
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+
+    <link rel="canonical" href="localhost:5500">
+    
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.css" rel="stylesheet">
+    <meta name="theme-color" content="#7952b3">
+    <script src="jQuery.js"></script>
+    <script>
+        // @media (max-width: 700px) {
+        //     section.side {
+        //         display: none;
+        //     }
+        // }
+        let show = false, Right_bar;
+        // let now_width = $(document).width();
+        $(document).ready(function() {
+            //600px 이상일때만 하기
+            $('.offcanvas-backdrop').css("display", "none");
+            $(document).on('click', 'div.offcanvas-backdrop, button.visible', function(e){
+                // button visible right, left 구별하기
+                var t=$(e.currentTarget||e.target);
+                console.log(t.hasClass('visible')); // 이거 이용해서 우측 좌측 구별하기.
+                let NowChatRoom = $('div.now-chat-room');
+                let NowChatContent = $('div.now-chat-content');
+                let ChatPost = $('div.post-chat');
+                let visible1 = $('div#offcanvasNavbar1');
+                let visible2 = $('div#offcanvasNavbar2');
+                let temp_width = $(document).width();
+                let Left_bar, Right_bar;
+                if(visible1.hasClass('show')) {
+                    Left_bar = (temp_width > 600)?320:0;
+                    $('.offcanvas-backdrop').css("display", "none");
+                    $('#section-left').css("width", "20rem");
+                    // if(temp_width >= 1000) {
+                    //     $('.offcanvas-backdrop').css("display", "block");
+                    // } else {
+                    //     $('.offcanvas-backdrop').css("display", "none");
+                    // }
+                } else {
+                    $('#section-left').css("width", "0");
+                    Left_bar = 0;
+                }
+                if(visible2.hasClass('show')) {
+                    Right_bar = (temp_width > 600)?399:0;
+                    $('.offcanvas-backdrop').css("display", "none");
+                    $('#section-right').css("width", "399px");
+                    // if(temp_width >= 1000) {
+                    //     $('div.header-main').css("width","20rem");
+                    // } else {
+                    //     $('div.header-main').css("width","0");
+                    // }
+                } else {
+                    $('#section-right').css("width", "0");
+                    Right_bar = 0;
+                }
+                let width = $(document).width() - Right_bar - Left_bar;
+                if(temp_width > 600) {
+                    if(visible1.hasClass('show')) {
+                        NowChatRoom.animate({width}, 300, 'swing');
+                        NowChatContent.animate({width}, 300, 'swing');
+                        ChatPost.animate({width}, 300, 'swing');
+                    } else if(visible2.hasClass('show')) {
+                        NowChatRoom.animate({width}, 300, 'swing');
+                        NowChatContent.animate({width}, 300, 'swing');
+                        ChatPost.animate({width}, 300, 'swing');
+                    } else {
+                        NowChatRoom.animate({width}, 300, 'swing');
+                        NowChatContent.animate({width}, 300, 'swing');
+                        ChatPost.animate({width}, 300, 'swing');
+                    }
+                } else {
+                    NowChatRoom.animate({width}, 300, 'swing');
+                    NowChatContent.animate({width}, 300, 'swing');
+                    ChatPost.animate({width}, 300, 'swing');
+                }
+            }), $(window).on('resize', function(){
+                let NowChatRoom = $('div.now-chat-room');
+                let NowChatContent = $('div.now-chat-content');
+                let ChatPost = $('div.post-chat');
+                let visible1 = $('div#offcanvasNavbar1');
+                let visible2 = $('div#offcanvasNavbar2');
+                let temp1 = visible1.hasClass('show');
+                let temp2 = visible2.hasClass('show');
+                let temp_width = $(document).width();
+                let Right_bar, Left_bar;
+                // console.log(temp_width);
+                if(visible1.hasClass('show')) {
+                    Left_bar = (temp_width > 600)?320:0;
+                    $('.offcanvas-backdrop').css("display", "none");
+                    $('#section-left').css("width", "20rem");
+                    // if(temp_width >= 1000) {
+                    //     $('.offcanvas-backdrop').css("display", "block");
+                    // } else {
+                    //     $('.offcanvas-backdrop').css("display", "none");
+                    // }
+                } else {
+                    $('#section-left').css("width", "0");
+                    Left_bar = 0;
+                }
+                if(visible2.hasClass('show')) {
+                    Right_bar = (temp_width > 600)?399:0;
+                    $('.offcanvas-backdrop').css("display", "none");
+                    $('#section-right').css("width", "399px");
+                    // if(temp_width >= 1000) {
+                    //     $('div.header-main').css("width","20rem");
+                    // } else {
+                    //     $('div.header-main').css("width","0");
+                    // }
+                } else {
+                    $('#section-right').css("width", "0");
+                    Right_bar = 0;
+                }
+                let width = $(document).width() - Right_bar - Left_bar;
+                if(show != temp1) {
+                    NowChatRoom.animate({width}, 300, 'swing');
+                    NowChatContent.animate({width}, 300, 'swing');
+                    ChatPost.animate({width}, 300, 'swing');
+                    show = visible1.hasClass('show');
+                } else if(show != temp2) {
+                    NowChatRoom.animate({width}, 300, 'swing');
+                    NowChatContent.animate({width}, 300, 'swing');
+                    ChatPost.animate({width}, 300, 'swing');
+                    show = visible2.hasClass('show');
+                } else {
+                    NowChatRoom.css("width", width);
+                    NowChatContent.css("width", width);
+                    ChatPost.css("width", width);
+                }
+                console.log(show, temp1, temp2);
+            })
+        });
+        </script>
+        <style>
+            section.side {
+                display: flex;
+                flex-wrap: nowrap;
+                height: calc(100vh - 56px);
+                height: -webkit-fill-available;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            div.chat-me, div.chat-other {
+                background: #fff;
+                border: 1px solid red;
+                padding: .4rem;
+                border-radius: 2rem;
+                /* width: fit-content; */
+            }
+            div.chat-other {
+                border-top-left-radius: 0rem;
+                float: left;
+            }
+            div.other {
+                padding: .25rem;
+            }
+            div.chat-me {
+                border-top-right-radius: 0rem;
+                float: right;
+            }
+            div.me {
+                padding: .25rem;
+            }
+            /* The Modal (background) */
+            .modal {
+                display: none;
+                /* Hidden by default */
+                position: fixed;
+                /* Stay in place */
+                z-index: 1;
+                /* Sit on top */
+                left: 0;
+                top: 0;
+                width: 100%;
+                /* Full width */
+                height: 100%;
+                overflow: auto;
+            }
+
+            /* Modal Content/Box */
+            .modal-content {
+                background-color: #fefefe;
+                margin: 5% auto 15% auto;
+                /* 5% from the top, 15% from the bottom and centered */
+                border: 1px solid #888;
+                width: 40%;
+                /* Could be more or less, depending on screen size */
+            }
+        </style>
+
+    
+    <!-- Custom styles for this template -->
+    <!-- <link href="sidebars.css" rel="stylesheet"> -->
+</head>
+<body style="display:flex;flex-direction: column;background-color: aqua;overflow: hidden;">
+    <header>
+        <nav class="navbar navbar-dark bg-primary">
+            <div class="container-fluid">
+                <button class="navbar-toggler visible" type="button" id="offcanvas" data-bs-target="#offcanvasNavbar1" aria-controls="offcanvasNavbar1">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                    <a class="navbar-brand" href="#">2022re</a>
+                <button class="navbar-toggler visible" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar2" aria-controls="offcanvasNavbar2">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="offcanvas offcanvas-start bg-primary show" tabindex="-1" id="offcanvasNavbar1" aria-labelledby="offcanvasNavbarLabel1" style="width: 20rem; height: 100vh; visibility: visible;" aria-modal="true" role="dialog">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel1">2022re</h5>
+                        <button type="button" class="btn-close text-reset visible" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="header-main d-flex flex-column align-items-stretch flex-shrink-0 bg-white">
+                        <div class="list-group list-group-flush border-bottom scrollarea">
+                            <a href="#" class="list-group-item list-group-item-action active py-3 lh-tight" aria-current="true">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방1</strong>
+                                    <small>Wed</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방2</strong>
+                                    <small class="text-muted">Tues</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방3</strong>
+                                    <small class="text-muted">Mon</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" aria-current="true">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방4</strong>
+                                    <small class="text-muted">Wed</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방5</strong>
+                                    <small class="text-muted">Tues</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방6</strong>
+                                    <small class="text-muted">Mon</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" aria-current="true">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방7</strong>
+                                    <small class="text-muted">Wed</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방8</strong>
+                                    <small class="text-muted">Tues</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방9</strong>
+                                    <small class="text-muted">Mon</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" aria-current="true">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방10</strong>
+                                    <small class="text-muted">Wed</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방11</strong>
+                                    <small class="text-muted">Tues</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방12</strong>
+                                    <small class="text-muted">Mon</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" aria-current="true">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방10</strong>
+                                    <small class="text-muted">Wed</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방11</strong>
+                                    <small class="text-muted">Tues</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+                                <div class="d-flex w-100 align-items-center justify-content-between">
+                                    <strong class="mb-1">채팅방12</strong>
+                                    <small class="text-muted">Mon</small>
+                                </div>
+                                <div class="col-10 mb-1 small">테스트 중입니다~ 디자인 어때요?</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="offcanvas offcanvas-end bg-primary show" tabindex="-1" id="offcanvasNavbar2" aria-labelledby="offcanvasNavbarLabel2" style="visibility: visible;" aria-modal="true" role="dialog">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel2">2022re</h5>
+                        <button type="button" class="btn-close text-reset visible" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="#">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Link</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Dropdown
+                                </a>
+                                <ul class="dropdown-menu text-white bg-primary" aria-labelledby="offcanvasNavbarDropdown2">
+                                    <li><a class="dropdown-item" href="#">Action</a></li>
+                                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <form class="d-flex">
+                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                            <button class="btn btn-outline-success" type="submit">Search</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="main d-flex flex-row">
+        <div class="float-start" id="section-left" style="height: calc(100vh - 56px);width: 20rem"></div>
+        <main class="flex-column" style="position: relative;height: calc(100vh - 56px);overflow-x: hidden;overflow-y: hidden;flex-grow: 1;">
+            <div class="now-chat-room" style="padding: 1rem;text-align: center;background-color: blueviolet;position: relative"><span class="fs-5 fw-semibold">채팅방1</span></div>
+                <div class="now-chat-content" style="overflow-y: auto;background-color: green;width: 100%;position: relative;height: 100%;flex-direction: column;display: flex;">
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용1</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용2</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용3</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용4</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용5</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용6</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용7</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용8</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용9</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용10</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용11</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용12</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용13</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용14</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용15</span></div></div>
+                    <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용16</span></div></div>
+                    <div class="me"><div class="chat-me"><span class="fs-5 fw-semibold me">채팅내용17</span></div></div>
+                </div>
+                <div class="post-chat" style="padding: 1rem;width: 100%;position: relative;bottom: 0;background-color: brown;">
+                <form action="/" method="post">
+                    <div class="chat-text" style="display: flex;">
+                        <input type="text" name="post-chat-content" id="post-chat-content" style="width: 90%;border: 1px solid red;padding: .5rem;border-top-left-radius: 2rem;border-bottom-left-radius: 2rem;">
+                        <input type="button" value="전송" style="border: 1px solid red;padding: .5rem;border-top-right-radius: 2rem;border-bottom-right-radius: 2rem;">
+                    </div>
+                </form>
+            </div>
+        </main>
+        <div class="float-end" id="section-right" style="height: calc(100vh - 56px);width: 399px"></div>
+    </div>
+    <script src="./bootstrap.js" crossorigin="anonymous"></script>
+</body>
+</html>
