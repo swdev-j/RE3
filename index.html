@@ -77,16 +77,22 @@
                 let width = $(document).width() - Right_bar - Left_bar;
                 if(temp_width > 600) {
                     if(visible1.hasClass('show')) {
-                        NowChatRoom.animate({width}, 300, 'swing');
-                        NowChatContent.animate({width}, 300, 'swing');
+                        NowChatRoom.css('transition',' transform .3s ease-in-out;');
+                        NowChatContent.css('transition','transform .3s ease-in-out;');
+                        // NowChatRoom.animate({width}, 300, 'swing');
+                        // NowChatContent.animate({width}, 300, 'swing');
                         ChatPost.animate({width}, 300, 'swing');
                     } else if(visible2.hasClass('show')) {
-                        NowChatRoom.animate({width}, 300, 'swing');
-                        NowChatContent.animate({width}, 300, 'swing');
+                        NowChatRoom.css('transition',' transform .3s ease-in-out;');
+                        NowChatContent.css('transition','transform .3s ease-in-out;');
+                        // NowChatRoom.animate({width}, 300, 'swing');
+                        // NowChatContent.animate({width}, 300, 'swing');
                         ChatPost.animate({width}, 300, 'swing');
                     } else {
-                        NowChatRoom.animate({width}, 300, 'swing');
-                        NowChatContent.animate({width}, 300, 'swing');
+                        NowChatRoom.css('transition',' transform .3s ease-in-out;');
+                        NowChatContent.css('transition','transform .3s ease-in-out;');
+                        // NowChatRoom.animate({width}, 300, 'swing');
+                        // NowChatContent.animate({width}, 300, 'swing');
                         ChatPost.animate({width}, 300, 'swing');
                     }
                 } else {
