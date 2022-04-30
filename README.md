@@ -1,11 +1,17 @@
+# question!!!
+- DB에 connection한 후, connection을 끝내주지 않아도 되는건가?
+- 분명 connection을 끝내주지 않으면 이 요청이 계속 쌓여 문제가 생겨난다고 배운 것 같음.
+- 끝내주지 않아도 될까..?
+
+
 # todo
 ## index.html
 - [ ] index.html 디자인
 - [X] index.html socket => send message code
 - [X] index.html socket => receive message code
-- [ ] index.html socket => receive message 시, 나인지 상대방인지 구별
+- [X] index.html socket => receive message 시, 나인지 상대방인지 구별
 - [X] index.html socket => receive type code
-- [ ] 악성 값이 0이면 초록색 1이면 노란색 2 [] 이상이면 빨간색
+- [ ] 악성 값이 0이면 초록색 1이면 노란색 2 이상이면 빨간색
 - [X] 이름 변경 막는 코드
 
 

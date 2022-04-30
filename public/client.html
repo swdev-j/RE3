@@ -40,9 +40,9 @@
     </style>
     <script>
         const socket = io();
-        let name;
-        const MSG = (who, msg, id) => {
-            if(who == 0) {
+        let name, MY_NAME;
+        const MSG = (who, name, msg, id) => {
+            if(who) {
                 return `<div class="me"><div class="chat-me" id="${id}"><span class="fs-5 fw-semibold me">${msg}</span></div></div>`;
             } else {
                 return `<div class="other"><div class="chat-other" id="${id}"><span class="fs-5 fw-semibold other">${msg}</span></div></div>`;
@@ -59,13 +59,13 @@
                 let name = $('#name')
                 let read = name.attr('readonly');
                 if(read != 'readonly') {
-                    name.attr('readonly', '')
+                    name.attr('readonly', '');
                 }
             })
         })
-        socket.on('receive message', function (msg, id) {
-            let who; // 본인인지 다른 사람인지 확인..
-            $('div.now-chat-content').append(MSG(who,msg,id));
+        socket.on('receive message', function (name, msg, id) {
+            let who = (MY_NAME == name)?true:false; // 본인인지 다른 사람인지 확인..
+            $('div.now-chat-content').append(MSG(who,name,msg,id));
             $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
         });
         socket.on('receive type', function (data, id) {
@@ -79,8 +79,9 @@
             }
             $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
         });
-        socket.on('change name', function (name) {
-            name = $('#name').val(name);
+        socket.on('change name', function (name_data) {
+            $('#name').val(name_data);
+            MY_NAME = name_data;
         });
     </script>
     <!-- Custom styles for this template -->
