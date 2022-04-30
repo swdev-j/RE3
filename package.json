@@ -1,16 +1,30 @@
 {
-  "name": "codes",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "start": "node ./bin/www"
-  },
+  "name": "re3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
   "dependencies": {
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "ejs": "~2.6.1",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "morgan": "~1.9.1"
-  }
+    "axios": "^0.27.2",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.13.4",
+    "express-session": "^1.17.2",
+    "express-socket.io-session": "^1.3.5",
+    "morgan": "^1.10.0",
+    "socket.io": "^1.4.5",
+    "xss": "^1.0.11"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/404err-or/RE3.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/404err-or/RE3/issues"
+  },
+  "homepage": "https://github.com/404err-or/RE3#readme"
 }

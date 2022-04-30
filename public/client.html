@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+
+    <link rel="canonical" href="localhost:5500">
+    
+    <link href="bootstrap.css" rel="stylesheet">
+    <meta name="theme-color" content="#7952b3">
+    <script src="jQuery.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        div.chat-me, div.chat-other {
+            background: #fff;
+            border: 1px solid red;
+            padding: .4rem;
+            border-radius: 2rem;
+            /* width: fit-content; */
+        }
+        div.chat-other {
+            border-top-left-radius: 0rem;
+            float: left;
+        }
+        div.other {
+            padding: .25rem;
+        }
+        div.chat-me {
+            border-top-right-radius: 0rem;
+            float: right;
+        }
+        div.me {
+            padding: .25rem;
+        }
+    </style>
+    <script>
+        const socket = io();
+        let name;
+        const MSG = (who, msg, id) => {
+            if(who == 0) {
+                return `<div class="me"><div class="chat-me" id="${id}"><span class="fs-5 fw-semibold me">${msg}</span></div></div>`;
+            } else {
+                return `<div class="other"><div class="chat-other" id="${id}"><span class="fs-5 fw-semibold other">${msg}</span></div></div>`;
+            }
+        }
+        $(document).ready(function(){
+            $('#chat').on('submit', function (e) {
+                e.preventDefault();
+                socket.emit('send message', $('#name').val(), $('#message').val());
+                $('#message').val("");
+                $("#message").focus();
+            });
+            $('#name').on('change',function(e){
+                let name = $('#name')
+                let read = name.attr('readonly');
+                if(read != 'readonly') {
+                    name.attr('readonly', '')
+                }
+            })
+        })
+        socket.on('receive message', function (msg, id) {
+            let who; // 본인인지 다른 사람인지 확인..
+            $('div.now-chat-content').append(MSG(who,msg,id));
+            $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+        });
+        socket.on('receive type', function (data, id) {
+            value = $(`div.now-chat-content > div > #${id}`);
+            if(data == 0) {
+                value.css('background-color', 'green');
+            } else if(data == 1) {
+                value.css('background-color', 'yellow');
+            } else if(1< data < 11) {
+                value.css('background-color', 'red');
+            }
+            $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+        });
+        socket.on('change name', function (name) {
+            name = $('#name').val(name);
+        });
+    </script>
+    <!-- Custom styles for this template -->
+    <link href="sidebars.css" rel="stylesheet">
+</head>
+<body style="display:flex;flex-direction: column;background-color: aqua;overflow: hidden;">
+    <header>
+        <nav class="navbar navbar-dark bg-primary" style="float: none; margin:100 auto;">
+            <div class="container-fluid row">
+                <a class="navbar-brand align-items-center text-center" href="#">2022re</a>
+            </div>
+        </nav>
+    </header>
+    <div class="main d-flex flex-row">
+        <main class="flex-column" style="position: relative;height: calc(100vh - 56px);overflow-x: hidden;overflow-y: hidden;flex-grow: 1;">
+            <div class="now-chat-room" style="padding: 1rem;text-align: center;background-color: blueviolet;position: relative"><span class="fs-5 fw-semibold">채팅방1</span></div>
+            <div id="chatLog" class="now-chat-content" style="overflow-y: auto;background-color: #9bbbd4;width: 100%;position: relative;height: 100%;flex-direction: column;display: flex;">
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용1</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용2</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용3</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용4</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용5</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용6</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용7</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용8</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용9</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용10</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용11</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용12</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용13</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용14</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용15</span></div></div>
+                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용16</span></div></div>
+                <div class="me"><div class="chat-me"><span class="fs-5 fw-semibold me">채팅내용17</span></div></div>
+            </div>
+            <div class="post-chat" style="padding: 1rem;width: 100%;position: relative;bottom: 0;background-color: brown;">
+                <form id="chat">
+                    <div class="chat-text" style="display: flex;">
+                        <input id="name" class="name" type="text" readonly>
+                        <input id="message" class="message" type="text" name="post-chat-content" id="post-chat-content" style="width: 90%;border: 1px solid red;padding: .5rem;border-top-left-radius: 2rem;border-bottom-left-radius: 2rem;">
+                        <input class="chat" type="submit" value="전송" style="border: 1px solid red;padding: .5rem;border-top-right-radius: 2rem;border-bottom-right-radius: 2rem;">
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script src="./bootstrap.js" crossorigin="anonymous"></script>
+</body>
+</html>
