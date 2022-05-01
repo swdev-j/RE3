@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>2022RE</title>
+	<link href="bootstrap.css" rel="stylesheet">
+    <script src="jQuery.js"></script>
+    <style>
+		.bd-placeholder-img {
+			font-size: 1.125rem;
+			text-anchor: middle;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			user-select: none;
+		}
+		@media (min-width: 768px) {
+			.bd-placeholder-img-lg {
+			font-size: 3.5rem;
+			}
+		}
+		input.form-control {
+			width: 100%;
+			background-color: transparent;
+			border: none;
+			border-bottom: 1px solid #999;
+			font-size: 18px;
+			color: #000;
+			outline: none;
+		}
+        .container {
+            max-width: 960px;
+        }
+        #same_name, .email_check, #same_email {
+            display: none;
+        }
+    </style>
+    <script src="https://ssl.daumcdn.net/dmaps/map_js_init/postcode.v2.js"></script>
+	<script>
+        $(document).ready(function(){
+            $input_name = $('input#name');
+            $('input#name').val( $('input#name').val().replace(/[^a-z0-9\-]/g, '') );
+            $input_name.on('keyup',function(){
+                let name = $('input#name');
+                let nickname = name.val().replace(/[^a-z0-9\-]/g, '');
+                name.val( nickname );
+            })
+        })
+        const ok = false;
+        const same_name = () => {
+            let name = $('input#name').val();
+            $.ajax({
+                type: 'post',
+                url: '/same_name',
+                data: { name },
+                success: (data) => {
+                    if(data == 'success') {
+                        $('#empty_name').css('display', 'block');
+                        $('#same_name').css('display', 'none');
+                        return true;
+                    } else if(data == 'fail') {
+                        $('#empty_name').css('display', 'none');
+                        $('#same_name').css('display', 'block');
+                        return false;
+                    } else {
+                        alert('오류가 발생');
+                    }
+                }
+            })
+        };
+        const same_email = () => {
+            let email = $('input#email').val();
+            $.ajax({
+                type: 'post',
+                url: '/same_email',
+                data: { email },
+                success: (data) => {
+                    if(data == 'success') {
+                        $('#empty_email').css('display', 'block');
+                        $('#same_email').css('display', 'none');
+                        return true;
+                    } else if(data == 'fail') {
+                        $('#empty_email').css('display', 'none');
+                        $('#same_email').css('display', 'block');
+                        return false;
+                    } else {
+                        alert('오류가 발생');
+                    }
+                },
+                error: (error) => {
+                    return false;
+                }
+            })
+        };
+        const check_email = () => {
+            let email = $('input#email').val();
+            $.ajax({
+                type: 'post',
+                url: '/check_email',
+                data: { email },
+                success: (data) => {
+                    if(data == 'success') {
+                        $('#valid_email_check').css('display','block');
+                        $('#invalid_email_check').css('display','none');
+                        return true;
+                    } else if(data == 'fail') {
+                        $('#valid_email_check').css('display','none');
+                        $('#invalid_email_check').css('display','block');
+                        return false;
+                    } else {
+                        alert('오류가 발생');
+                    }
+                }
+            })
+        };
+        function debounce(callback, wait) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(function () { callback.apply(this, args); }, wait);
+            };
+        }
+        window.onload = () => {
+            document.getElementById('name').addEventListener('keyup', debounce( () => {
+                same_name();
+            }, 1000));
+            document.getElementById('email').addEventListener('keyup', debounce( () => {
+                same_email();
+            }, 1000));
+        }
+        
+        </script>
+</head>
+<body class="bg-light">
+	<div class="container">
+		<main>
+			<div class="py-5 text-center">
+				<h2>2022 R&amp;E</h2>
+				<p class="lead" style="text-align:center;word-break: keep-all;">이 페이지는 2022년 졸업논문 R&E 중 채팅을 위한 회원가입 페이지입니다.</p>
+			</div>
+			<div class="row g-5" style="align-items: center;justify-content: center;">
+				<div class="col-md-7 col-lg-8">
+					<h4 class="mb-3">회원가입</h4>
+					<form class="needs-validation" novalidate="" method="post" action="process.php">
+						<div class="row g-3">
+							<div class="col-12">
+								<label for="name" class="form-label">닉네임</label>
+								<div class="row">
+                                    <div class="col-9">
+                                        <input type="text" name="name" pattern="^[a-z0-9\-]+$" class="form-control" id="name" placeholder="ex. 404err-or" maxlength="15" required="">
+                                        <div class="invalid-feedback" id="empty_name">
+                                            닉네임 칸이 비었습니다.
+                                        </div>
+                                        <div class="invalid-feedback" id="invalid_same_name">
+                                            중복된 닉네임입니다.
+                                        </div>
+                                        <div class="valid-feedback" id="valid_same_name">
+                                            사용가능한 닉네임입니다.
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <button type="button" class="btn btn-primary">중복 확인</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="link-danger">한 번 정한 닉네임은 변경이 불가능합니다.</div>
+                                <div class="link-danger">닉네임은 '-', 영어 소문자, 숫자만 가능하며,<br>그 외 문자를 포함할 수 없습니다.</div>
+							</div>
+							<div class="col-12">
+                                <label for="email" class="form-label">이메일</label>
+								<div class="row">
+                                    <div class="col-9">
+                                        <input type="email" pattern=".+@gsa\.hs\.kr" id="email" name="email" class="form-control" id="email" placeholder="ex. students@gsa.hs.kr" value="@gsa.hs.kr" required="">
+                                        <div class="invalid-feedback" id="empty_email">
+                                            이메일 칸이 비었습니다.
+                                        </div>
+                                        <div class="invalid-feedback" id="same_email">
+                                            이메일이 중복되었습니다.
+                                        </div>
+                                        <div class="email_check">
+                                            <input type="text" id="email_check" name="email_check" class="form-control" id="email_check" placeholder="이메일로 받은 암호" required="">
+                                            <div class="valid-feedback" id="valid_email_check">
+                                                인증에 성공하였습니다.
+                                            </div>
+                                            <div class="invalid-feedback" id="invalid_email_check">
+                                                인증에 실패하였습니다.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <button type="button" class="btn btn-primary">인증</button>
+                                    </div>
+                                </div>
+                                <div class="red">학교 계정(gsa.hs.kr만 등록할 수 있습니다.)</div>
+							</div>
+						</div>
+						<hr class="my-4">
+						<h4 class="mb-3">개인정보 동의서</h4>
+						<p class="lead" style="text-align:center;word-break: keep-all;">이용자가 제공한 모든 정보는 연구활동을 위해 활용되며, 목적 이외의 용도로는 사용되지 않습니다. 개인정보 수집, 이용, 제공하는 것에 동의합니다.</p>
+						<div class="my-3">
+							<div class="form-check">
+								<input id="yes" name="agree" type="radio" class="form-check-input" value="yes" required="">
+								<label class="form-check-label" for="yes">예</label>
+                                <div class="invalid-feedback">
+                                    개인정보 동의서에 동의하지 않았습니다. 동의하지 않으면 해당 사이트를 이용하실 수 없습니다.
+                                </div>
+							</div>
+						</div>
+						<hr class="my-4">
+						<button class="w-100 btn btn-primary btn-lg" type="submit">회원가입!</button>
+					</form>
+				</div>
+			</div>
+		</main>
+		<footer class="my-5 pt-5 text-muted text-center text-small">
+			<p class="mb-1">© 2022. 404err-or all rights reserved.</p>
+		</footer>
+	</div>
+	<script src="bootstrap.js"></script>
+	<script>
+        // Example starter JavaScript for disabling form submissions if there are invalid fields
+        (function () {
+        'use strict'
+
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll('.needs-validation')
+
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+                }
+
+                form.classList.add('was-validated')
+            }, false)
+            })
+        })()
+    </script>
+</body>
+</html>

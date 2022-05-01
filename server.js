@@ -11,6 +11,7 @@ const session = require('express-session');
 const ios = require("express-socket.io-session");
 const axios = require("axios");
 const { db } = require("./db");
+const { sendmail:email } = require("./email");
 require('dotenv').config();
 const session_data = session({
     secret: process.env.SESSION_SECRET,
@@ -41,9 +42,9 @@ console.log(sql_key);
 const sql_query = (sql_data, params) => {
     if(sql_key.includes(sql_data)) {
         if(sql_data.startsWith('insert')) {
-            db.query(sql[sql_data], params, function (err, result) {
+            db.query(sql[sql_data], params, function (err, rows, fields) {
                 if (!err) {
-                    console.log(result);
+                    console.log(rows, fields);
                 } else {
                     console.log('query error : ' + err);
                     console.log(err);
@@ -68,6 +69,7 @@ const sql_query = (sql_data, params) => {
 }
 
 console.log(__dirname)
+app.set("view engine", "ejs");
 app.use(logger('dev'));
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
@@ -83,17 +85,22 @@ io.use(ios(
 let count=1;
 app.get("/",function(req, res){
     // if(req.session.name) {
-        res.sendfile("public/client.html");
+        res.render("client", {name: req.session.name});
     // } else {
         //     res.redirect("/login");
         // }
 });
+
+app.get('/session', function(req,res) {
+    req.session.name = "user" + count++;
+    res.send('success');
+})
     
 app.get("/signin", function(req,res){
     if(req.session.name) {
         res.redirect("/");
     } else {
-        res.sendfile("public/login.html");
+        res.sendFile("public/login.html");
     }
 });
 
@@ -102,28 +109,27 @@ app.post("/signup", function(req,res){
 });
 
 app.get("/signin", function(req,res){
-    res.sendfile("public/signin.html");
+    res.sendFile("public/signin.html");
 });
 
 app.get("/forget", function(req,res){
-    res.sendfile("public/forget.html");
+    res.sendFile("public/forget.html");
 });
 
-let chat_id;
+let chat_id = 0;
 
-db.query('select id from re22_chat order by id desc limit 1;', function (err, rows, fields) {
-    db.end();
-    if (!err) {
-        if(rows == []) {
-            chat_id = 0;
-        } else {
-            chat_id = rows[0]['id'];
-        }
-    } else {
-        console.log('query error : ' + err);
-        console.log(err);
-    }
-});
+// db.query('select id from re22_chat order by id desc limit 1;', function (err, rows, fields) {
+//     if (!err) {
+//         if(rows == []) {
+//             chat_id = 0;
+//         } else {
+//             chat_id = rows[0]['id'];
+//         }
+//     } else {
+//         console.log('query error : ' + err);
+//         console.log(err);
+//     }
+// });
 io.on('connection', function(socket){
     console.log('user connected: ', socket.id);
     let name;
@@ -156,7 +162,7 @@ io.on('connection', function(socket){
                     .then(html => Object.values(html.data).reduce((a, b) => a + b))
                     .then(type => {
                         console.log(id, msg, type);
-                        io.emit('receive type', data, id);
+                        io.emit('receive type', type, id);
                         // sql_query('insert_type', [type, id]);
                     })
                     .catch(err => console.log(err))
@@ -183,6 +189,7 @@ process.on('exit', (code)=>{
 });
 
 process.once('SIGINT', ()=>{
-    console.log("You've pressed Ctrl + C on this process.");
     db.end();
+    console.log("You've pressed Ctrl + C on this process.");
+    process.exit();
 })

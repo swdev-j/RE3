@@ -26,6 +26,7 @@
         div.chat-other {
             border-top-left-radius: 0rem;
             float: left;
+            margin-left: 1rem;
         }
         div.other {
             padding: .25rem;
@@ -37,29 +38,35 @@
         div.me {
             padding: .25rem;
         }
+        div.other-user {
+            border-top-left-radius: 0rem;
+            float: left;
+        }
     </style>
     <script>
         const socket = io();
-        let name, MY_NAME;
+        let name;
+        const MY_NAME = "<%=name%>";
         const MSG = (who, name, msg, id) => {
             if(who) {
                 return `<div class="me"><div class="chat-me" id="${id}"><span class="fs-5 fw-semibold me">${msg}</span></div></div>`;
             } else {
-                return `<div class="other"><div class="chat-other" id="${id}"><span class="fs-5 fw-semibold other">${msg}</span></div></div>`;
+                return `<div class="other"><div class="other-user"><span class="fw-semibold other">${name}</span></div><br><div class="chat-other" id="${id}"><span class="fs-5 fw-semibold other">${msg}</span></div></div>`;
             }
         }
         $(document).ready(function(){
             $('#chat').on('submit', function (e) {
                 e.preventDefault();
-                socket.emit('send message', $('#name').val(), $('#message').val());
+                socket.emit('send message', MY_NAME, $('#message').val());
                 $('#message').val("");
                 $("#message").focus();
             });
             $('#name').on('change',function(e){
-                let name = $('#name')
-                let read = name.attr('readonly');
+                let name_change = $('#name')
+                let read = name_change.attr('readonly');
                 if(read != 'readonly') {
-                    name.attr('readonly', '');
+                    name_change.attr('readonly', '');
+                    name_change.val(MY_NAME);
                 }
             })
         })
@@ -80,8 +87,7 @@
             $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
         });
         socket.on('change name', function (name_data) {
-            $('#name').val(name_data);
-            MY_NAME = name_data;
+            $('#name').val(MY_NAME);
         });
     </script>
     <!-- Custom styles for this template -->
@@ -99,7 +105,7 @@
         <main class="flex-column" style="position: relative;height: calc(100vh - 56px);overflow-x: hidden;overflow-y: hidden;flex-grow: 1;">
             <div class="now-chat-room" style="padding: 1rem;text-align: center;background-color: blueviolet;position: relative"><span class="fs-5 fw-semibold">채팅방1</span></div>
             <div id="chatLog" class="now-chat-content" style="overflow-y: auto;background-color: #9bbbd4;width: 100%;position: relative;height: 100%;flex-direction: column;display: flex;">
-                <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용1</span></div></div>
+                <div class="other"><div class="other-user"><span class="fw-semibold other">user1</span></div><br><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용1</span></div></div>
                 <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용2</span></div></div>
                 <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용3</span></div></div>
                 <div class="other"><div class="chat-other"><span class="fs-5 fw-semibold other">채팅내용4</span></div></div>
