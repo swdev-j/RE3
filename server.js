@@ -11,7 +11,7 @@ const session = require('express-session');
 const ios = require("express-socket.io-session");
 const axios = require("axios");
 const { db } = require("./db");
-const { sendmail:email } = require("./email");
+const { Auth, sendmail } = require("./email");
 require('dotenv').config();
 const session_data = session({
     secret: process.env.SESSION_SECRET,
@@ -32,7 +32,8 @@ const sql = {
     'insert_user': 'INSERT INTO re22_user (nickname, pw, email) values (?, password(?), ?)',
     'insert_type': 'UPDATE re22_chat SET type=? where id=?',
     'select_data': 'SELECT * FROM re22_chat WHERE ? <= id and id <= ?',
-    'valid_email': 'SELECT * FROM user WHERE email=?',
+    'valid_name': 'SELECT * FROM re22_user WHERE nickname=?',
+    'valid_email': 'SELECT * FROM re22_user WHERE email=?',
     'valid_login': 'SELECT * FROM re22_user WHERE nickname=? and pw=password(?)'
 };
 
@@ -41,28 +42,19 @@ console.log(sql_key);
 
 const sql_query = (sql_data, params) => {
     if(sql_key.includes(sql_data)) {
-        if(sql_data.startsWith('insert')) {
+        return new Promise(function(resolve, reject){
             db.query(sql[sql_data], params, function (err, rows, fields) {
                 if (!err) {
-                    console.log(rows, fields);
-                } else {
-                    console.log('query error : ' + err);
-                    console.log(err);
-                }
-            });
-        } else {
-            db.query(sql[sql_data], params, function (err, rows, fields) {
-                if (!err) {
-                    console.log(rows);
-                    console.log(fields);
                     var result = 'rows : ' + JSON.stringify(rows) + '\n\n' + 'fields : ' + JSON.stringify(fields);
                     console.log(result);
+                    return resolve(rows);
                 } else {
-                    console.log('query error : ' + err);
+                    // console.log('query error : ' + err);
                     console.log(err);
+                    return reject(err);
                 }
             });
-        }
+        });
     } else {
         return false;
     }
@@ -83,6 +75,9 @@ io.use(ios(
 ))
 
 let count=1;
+
+let email_verify = {};
+
 app.get("/",function(req, res){
     // if(req.session.name) {
         res.render("client", {name: req.session.name});
@@ -96,24 +91,87 @@ app.get('/session', function(req,res) {
     res.send('success');
 })
     
-app.get("/signin", function(req,res){
+app.get("/signup", function(req,res){
     if(req.session.name) {
         res.redirect("/");
     } else {
-        res.sendFile("public/login.html");
+        res.sendFile(__dirname + "/public/login.html");
     }
 });
 
 app.post("/signup", function(req,res){
-    
+});
+
+app.post('/check_email', function(req, res) {
+    let email = req.body.email;
+    let code = Auth();
+    let status = sendmail(code, email);
+    email_verify[email] = code;
+    setTimeout(() => {
+        delete email_verify[email];
+    }, 10*60*1000);
+    console.log(JSON.stringify(email_verify,null,4));
+    if(status) {
+        res.send('success');
+    } else {
+        res.send('fail');
+    }
+});
+
+app.post('/verify_email', function(req, res) {
+    let email = req.body.email;
+    let code = req.body.code;
+    if(email_verify[email] == code && email_verify[email] && email_verify[email].length == 29) {
+        res.send('success');
+    } else {
+        res.send('fail');
+    }
+});
+
+app.post('/same_name', function(req, res){
+    let name = req.body.name;
+    sql_query('valid_name', [name])
+        .then(result => {
+            if(result) {
+                if(result.length == 0) {
+                    res.send('success');
+                } else if(result.length == 1) {
+                    res.send('fail');
+                } else {
+                    console.log(result);
+                    res.send('error');
+                }
+            } else {
+                res.send('error');
+            }
+        })
+});
+
+app.post('/same_email', function(req, res){
+    let email = req.body.email;
+    sql_query('valid_email', [email])
+        .then(result => {
+            if(result) {
+                if(result.length == 0) {
+                    res.send('success');
+                } else if(result.length == 1) {
+                    res.send('fail');
+                } else {
+                    console.log(result);
+                    res.send('error');
+                }
+            } else {
+                res.send('error');
+            }
+        })
 });
 
 app.get("/signin", function(req,res){
-    res.sendFile("public/signin.html");
+    res.sendFile(__dirname + "/public/signin.html");
 });
 
 app.get("/forget", function(req,res){
-    res.sendFile("public/forget.html");
+    res.sendFile(__dirname + "/public/forget.html");
 });
 
 let chat_id = 0;
@@ -189,7 +247,7 @@ process.on('exit', (code)=>{
 });
 
 process.once('SIGINT', ()=>{
-    db.end();
+    db.destroy();
     console.log("You've pressed Ctrl + C on this process.");
     process.exit();
 })

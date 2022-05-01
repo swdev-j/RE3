@@ -33,7 +33,7 @@
         .container {
             max-width: 960px;
         }
-        #same_name, .email_check, #same_email {
+        #invalid_same_name, #valid_same_name, div.email_verify, #same_email, button#verify_email {
             display: none;
         }
     </style>
@@ -46,74 +46,148 @@
                 let name = $('input#name');
                 let nickname = name.val().replace(/[^a-z0-9\-]/g, '');
                 name.val( nickname );
-            })
+            });
+            // $(document).on('submit', 'form.needs-validation', function(event) {
+            //     event.preventDefault();
+            //     event.stopPropagation();
+            //     form = $('form.needs-validation');
+            //     form.addClass('was-validated');
+            //     if (form.checkValidity() && !func_verify_email() && func_same_name()) {
+            //         $('form.needs-validation').submit();
+            //     }
+            // })
         })
-        const ok = false;
-        const same_name = () => {
+        const func_same_name = () => { // 닉네임 중복확인
             let name = $('input#name').val();
-            $.ajax({
-                type: 'post',
-                url: '/same_name',
-                data: { name },
-                success: (data) => {
-                    if(data == 'success') {
-                        $('#empty_name').css('display', 'block');
-                        $('#same_name').css('display', 'none');
-                        return true;
-                    } else if(data == 'fail') {
-                        $('#empty_name').css('display', 'none');
-                        $('#same_name').css('display', 'block');
+            if(name) {
+                $.ajax({
+                    type: 'post',
+                    url: '/same_name',
+                    data: { name },
+                    success: (data) => {
+                        if(data == 'success') {
+                            $('#valid_same_name').css('display', 'block');
+                            $('#invalid_same_name').css('display', 'none');
+                            return true;
+                        } else if(data == 'fail') {
+                            $('#valid_same_name').css('display', 'none');
+                            $('#invalid_same_name').css('display', 'block');
+                            return false;
+                        } else {
+                            alert('오류가 발생');
+                            return false;
+                        }
+                    },
+                    error: (error) => {
+                        console.log(err)
                         return false;
-                    } else {
-                        alert('오류가 발생');
                     }
-                }
-            })
+                });
+            } else {
+                return false;
+            }
         };
-        const same_email = () => {
-            let email = $('input#email').val();
-            $.ajax({
-                type: 'post',
-                url: '/same_email',
-                data: { email },
-                success: (data) => {
-                    if(data == 'success') {
-                        $('#empty_email').css('display', 'block');
-                        $('#same_email').css('display', 'none');
-                        return true;
-                    } else if(data == 'fail') {
-                        $('#empty_email').css('display', 'none');
-                        $('#same_email').css('display', 'block');
+        const func_same_email = () => { // 이메일 중복확인
+            let email_element = $('input#email');
+            let email = email_element.val();
+            if(email && email_element[0].checkValidity()) {
+                $.ajax({
+                    type: 'post',
+                    url: '/same_email',
+                    data: { email },
+                    success: (data) => {
+                        if(data == 'success') {
+                            $('#empty_email').css('display', 'none');
+                            $('#same_email').css('display', 'none');
+                            return true;
+                        } else if(data == 'fail') {
+                            $('#empty_email').css('display', 'none');
+                            $('#same_email').css('display', 'block');
+                            return false;
+                        } else {
+                            alert('오류가 발생');
+                            return false;
+                        }
+                    },
+                    error: (error) => {
+                        console.log(err)
                         return false;
-                    } else {
-                        alert('오류가 발생');
                     }
-                },
-                error: (error) => {
-                    return false;
-                }
-            })
+                });
+            }  else {
+                $('#empty_email').css('display', 'block');
+                return false;
+            }
         };
-        const check_email = () => {
-            let email = $('input#email').val();
-            $.ajax({
-                type: 'post',
-                url: '/check_email',
-                data: { email },
-                success: (data) => {
-                    if(data == 'success') {
-                        $('#valid_email_check').css('display','block');
-                        $('#invalid_email_check').css('display','none');
-                        return true;
-                    } else if(data == 'fail') {
-                        $('#valid_email_check').css('display','none');
-                        $('#invalid_email_check').css('display','block');
+        const func_check_email = () => { // 인증메일 보내기
+            $('button#check_email').attr('disabled', true);
+            $('input#email').attr('disabled', true);
+            let email_element = $('input#email');
+            let email = email_element.val();
+            if(email && email_element[0].checkValidity()) {
+                $.ajax({
+                    type: 'post',
+                    url: '/check_email',
+                    data: { email },
+                    success: (data) => {
+                        console.log(data);
+                        if(data == 'success') {
+                            $('div.email_verify').css('display','block');
+                            $('button#verify_email').css('display','block');
+                            alert('이메일을 발송하였습니다. 10분 이내에 인증을 완료해주세요.');
+                            return true;
+                        } else if(data == 'fail') {
+                            $('div.email_verify').css('display','none');
+                            $('button#verify_email').css('display','none');
+                            return false;
+                        } else {
+                            alert('오류가 발생');
+                            return false;
+                        }
+                    },
+                    error: (error) => {
+                        console.log(err)
                         return false;
-                    } else {
-                        alert('오류가 발생');
                     }
-                }
-            })
+                });
+            } else {
+                return false;
+            }
+        };
+        const func_verify_email = () => { // 메일인증 확인하기
+            let code = $('input#email_verify').val();
+            let email_element = $('input#email');
+            let email = email_element.val();
+            if(email && email_element[0].checkValidity() && code) {
+                $.ajax({
+                    type: 'post',
+                    url: '/verify_email',
+                    data: { email, code },
+                    success: (data) => {
+                        console.log(data);
+                        if(data == 'success') {
+                            $('#valid_email_verify').css('display','block');
+                            $('#invalid_email_verify').css('display','none');
+                            $('input#email_verify').attr('disabled',true);
+                            $('button#verify_email').attr('disabled',true);
+                            return true;
+                        } else if(data == 'fail') {
+                            $('#valid_email_verify').css('display','none');
+                            $('#invalid_email_verify').css('display','block');
+                            return false;
+                        } else {
+                            alert('오류가 발생');
+                            return false;
+                        }
+                    },
+                    error: (error) => {
+                        console.log(err)
+                        return false;
+                    }
+                });
+            } else {
+                return false;
+            }
         };
         function debounce(callback, wait) {
             let timeout;
@@ -124,10 +198,10 @@
         }
         window.onload = () => {
             document.getElementById('name').addEventListener('keyup', debounce( () => {
-                same_name();
+                func_same_name();
             }, 1000));
             document.getElementById('email').addEventListener('keyup', debounce( () => {
-                same_email();
+                func_same_email();
             }, 1000));
         }
         
@@ -143,7 +217,7 @@
 			<div class="row g-5" style="align-items: center;justify-content: center;">
 				<div class="col-md-7 col-lg-8">
 					<h4 class="mb-3">회원가입</h4>
-					<form class="needs-validation" novalidate="" method="post" action="process.php">
+					<form class="needs-validation" novalidate="" method="post" action="/signin">
 						<div class="row g-3">
 							<div class="col-12">
 								<label for="name" class="form-label">닉네임</label>
@@ -161,7 +235,7 @@
                                         </div>
                                     </div>
                                     <div class="col-3">
-                                        <button type="button" class="btn btn-primary">중복 확인</button>
+                                        <button type="button" class="btn btn-primary" onclick="func_same_name()">중복 확인</button>
                                     </div>
                                 </div>
                                 
@@ -170,31 +244,46 @@
 							</div>
 							<div class="col-12">
                                 <label for="email" class="form-label">이메일</label>
-								<div class="row">
+                                <div class="row">
                                     <div class="col-9">
-                                        <input type="email" pattern=".+@gsa\.hs\.kr" id="email" name="email" class="form-control" id="email" placeholder="ex. students@gsa.hs.kr" value="@gsa.hs.kr" required="">
+                                        <input type="email" pattern=".+@gsa\.hs\.kr" id="email" name="email" class="form-control" placeholder="ex. students@gsa.hs.kr" value="@gsa.hs.kr" required="">
                                         <div class="invalid-feedback" id="empty_email">
                                             이메일 칸이 비었습니다.
                                         </div>
                                         <div class="invalid-feedback" id="same_email">
                                             이메일이 중복되었습니다.
                                         </div>
-                                        <div class="email_check">
-                                            <input type="text" id="email_check" name="email_check" class="form-control" id="email_check" placeholder="이메일로 받은 암호" required="">
-                                            <div class="valid-feedback" id="valid_email_check">
+                                        <div class="email_verify">
+                                            <input type="text" id="email_verify" name="email_verify" class="form-control" placeholder="이메일로 받은 암호" required="">
+                                            <div class="valid-feedback" id="valid_email_verify">
                                                 인증에 성공하였습니다.
                                             </div>
-                                            <div class="invalid-feedback" id="invalid_email_check">
+                                            <div class="invalid-feedback" id="invalid_email_verify">
                                                 인증에 실패하였습니다.
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-3">
-                                        <button type="button" class="btn btn-primary">인증</button>
+                                        <button type="button" class="btn btn-primary" id="check_email" onclick="func_check_email()">인증 발송</button>
+                                        <button type="button" class="btn btn-primary" id="verify_email" onclick="func_verify_email()">인증</button>
                                     </div>
                                 </div>
-                                <div class="red">학교 계정(gsa.hs.kr만 등록할 수 있습니다.)</div>
+                                <div class="link-danger">학교 계정(gsa.hs.kr만 등록할 수 있습니다.)</div>
 							</div>
+                            <div class="col-12">
+                                <label for="email" class="form-label">이메일</label>
+                                <input type="pw" id="pw" name="pw" class="form-control" required="">
+                                <div class="invalid-feedback" id="empty_pw">
+                                    비밀번호 칸이 비었습니다.
+                                </div>
+                                <input type="pw" id="valid_pw" name="valid_pw" class="form-control" required="">
+                                <div class="invalid-feedback" id="empty_valid_pw">
+                                    비밀번호 확인 칸이 비었습니다.
+                                </div>
+                            </div>
+                            <div class="invalid-feedback" id="verify_pw">
+                                비밀번호가 알맞지 않습니다..
+                            </div>
 						</div>
 						<hr class="my-4">
 						<h4 class="mb-3">개인정보 동의서</h4>
@@ -231,11 +320,10 @@
         Array.prototype.slice.call(forms)
             .forEach(function (form) {
             form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                event.preventDefault()
-                event.stopPropagation()
+                if (!form.checkValidity() || !func_verify_email() || !func_same_name()) {
+                    event.preventDefault()
+                    event.stopPropagation()
                 }
-
                 form.classList.add('was-validated')
             }, false)
             })
