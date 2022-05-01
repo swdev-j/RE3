@@ -26,7 +26,7 @@
 - [X] 회원가입 이메일 인증하기
 
 ## server.js
-- [ ] XXS 막기
+- [X] XXS 막기
 - [X] server.js socket => send message code
 - [ ] server.js socket => receive message code
 - [ ] receive message => DB에 넣기
