@@ -33,7 +33,7 @@
         .container {
             max-width: 960px;
         }
-        #invalid_same_name, #valid_same_name, div.email_verify, #same_email, button#verify_email {
+        #invalid_same_name, #valid_same_name, div.email_verify, #same_email, button#verify_email, #verify_pw {
             display: none;
         }
     </style>
@@ -47,6 +47,9 @@
                 let nickname = name.val().replace(/[^a-z0-9\-]/g, '');
                 name.val( nickname );
             });
+            $(document).on('keyup', 'input#valid_pw', function(){
+                
+            })
             // $(document).on('submit', 'form.needs-validation', function(event) {
             //     event.preventDefault();
             //     event.stopPropagation();
@@ -78,7 +81,7 @@
                             return false;
                         }
                     },
-                    error: (error) => {
+                    error: (err) => {
                         console.log(err)
                         return false;
                     }
@@ -109,7 +112,7 @@
                             return false;
                         }
                     },
-                    error: (error) => {
+                    error: (err) => {
                         console.log(err)
                         return false;
                     }
@@ -145,7 +148,7 @@
                             return false;
                         }
                     },
-                    error: (error) => {
+                    error: (err) => {
                         console.log(err)
                         return false;
                     }
@@ -180,7 +183,7 @@
                             return false;
                         }
                     },
-                    error: (error) => {
+                    error: (err) => {
                         console.log(err)
                         return false;
                     }
@@ -188,6 +191,12 @@
             } else {
                 return false;
             }
+        };
+        const valid_pw = () => {
+            let pw = $('input#pw').val();
+            let valid_pw = $('input#valid_pw').val();
+            if(pw && pw == valid_pw && pw.length >= 8) return true;
+            else return false;
         };
         function debounce(callback, wait) {
             let timeout;
@@ -271,18 +280,21 @@
                                 <div class="link-danger">학교 계정(gsa.hs.kr만 등록할 수 있습니다.)</div>
 							</div>
                             <div class="col-12">
-                                <label for="email" class="form-label">이메일</label>
-                                <input type="pw" id="pw" name="pw" class="form-control" required="">
+                                <label for="email" class="form-label">비밀번호</label>
+                                <input type="password" id="pw" name="pw" class="form-control" minlength="8" required="">
                                 <div class="invalid-feedback" id="empty_pw">
                                     비밀번호 칸이 비었습니다.
                                 </div>
-                                <input type="pw" id="valid_pw" name="valid_pw" class="form-control" required="">
-                                <div class="invalid-feedback" id="empty_valid_pw">
+                                <div class="invalid-feedback" id="notallowed_pw">
+                                    비밀번호는 8자리 이상이어야합니다.
+                                </div>
+                                <input type="password" id="valid_pw" name="valid_pw" class="form-control" minlength="8" required="">
+                                <div class="invalid-feedback" id="notallowed_valid_pw">
                                     비밀번호 확인 칸이 비었습니다.
                                 </div>
                             </div>
                             <div class="invalid-feedback" id="verify_pw">
-                                비밀번호가 알맞지 않습니다..
+                                비밀번호가 알맞지 않습니다.
                             </div>
 						</div>
 						<hr class="my-4">

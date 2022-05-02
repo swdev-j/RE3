@@ -10,7 +10,7 @@ const xss = require('xss'); // XSS 방지
 const session = require('express-session');
 const ios = require("express-socket.io-session");
 const axios = require("axios");
-const { db } = require("./db");
+const { sql_query, db } = require("./db");
 const { Auth, sendmail } = require("./email");
 require('dotenv').config();
 const session_data = session({
@@ -39,26 +39,6 @@ const sql = {
 
 sql_key = Object.keys(sql);
 console.log(sql_key);
-
-const sql_query = (sql_data, params) => {
-    if(sql_key.includes(sql_data)) {
-        return new Promise(function(resolve, reject){
-            db.query(sql[sql_data], params, function (err, rows, fields) {
-                if (!err) {
-                    var result = 'rows : ' + JSON.stringify(rows) + '\n\n' + 'fields : ' + JSON.stringify(fields);
-                    console.log(result);
-                    return resolve(rows);
-                } else {
-                    // console.log('query error : ' + err);
-                    console.log(err);
-                    return reject(err);
-                }
-            });
-        });
-    } else {
-        return false;
-    }
-}
 
 console.log(__dirname)
 app.set("view engine", "ejs");

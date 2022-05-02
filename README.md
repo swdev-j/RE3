@@ -3,6 +3,23 @@
 - 분명 connection을 끝내주지 않으면 이 요청이 계속 쌓여 문제가 생겨난다고 배운 것 같음.
 - 끝내주지 않아도 될까..?
 
+# Problem
+- [X] 1. socket.io에는 session이 없음. => 아무리 잘 해놓아봤자, 새로고침하면 초기화. 어떻게 할 것인가?
+- [ ] 2. db를 node 실행 초기 한번만 connection 함. => 계속된 연결이 있지 않는 한, 연결이 끊김. 어떻게 해결할까? 
+
+
+# Solution
+- 1. express-socket.io-session이란 모듈 찾음. 하지만, session을 초기에 지정해주어야 함.
+``````
+const session = require('express-session');
+const session_data = session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true
+});
+``````
+like this.
+
 
 # todo
 ## index.html
@@ -26,7 +43,7 @@
 - [X] 회원가입 이메일 인증하기
 
 ## server.js
-- [ ] XXS 막기
+- [X] XXS 막기
 - [X] server.js socket => send message code
 - [ ] server.js socket => receive message code
 - [ ] receive message => DB에 넣기
@@ -39,8 +56,8 @@
 - [ ] server.js DB => forget code
 - [X] 이름 변경 막는 코드
 - [X] sql Object 완성하기
-- [ ] sql injection 막기
+- [X] sql injection 막기
 - [X] sql 사용하기.. => https://reddb.tistory.com/143
 - [ ] sql 적용하기
 - [X] email 보내는거 테스트하기
-- [ ] valid email code
+- [X] valid email code
