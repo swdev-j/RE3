@@ -9,7 +9,7 @@
 
 
 # Solution
-- 1. express-socket.io-session이란 모듈 찾음. 하지만, session을 초기에 지정해주어야 함.
+ 1. express-socket.io-session이란 모듈 찾음. 하지만, session을 초기에 지정해주어야 함.
 ``````
 const session = require('express-session');
 const session_data = session({
