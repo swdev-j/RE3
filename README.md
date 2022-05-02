@@ -60,3 +60,4 @@ like this.
 - [X] sql 사용하기.. => https://reddb.tistory.com/143
 - [ ] sql 적용하기
 - [X] email 보내는거 테스트하기
+
