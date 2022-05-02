@@ -60,8 +60,3 @@ like this.
 - [X] sql 사용하기.. => https://reddb.tistory.com/143
 - [ ] sql 적용하기
 - [X] email 보내는거 테스트하기
-<<<<<<< HEAD
-- [X] valid email code
-=======
-- [ ] valid email code
->>>>>>> ded9e36adaabda93a0eeab5fa153320b830e9416
