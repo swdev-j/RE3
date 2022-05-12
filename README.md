@@ -69,8 +69,8 @@ const session_data = session({
 - [X] email 보내는거 테스트하기
 
 ## forget.html
- - nickname => email로 nickname 보내주기
- - password => 인증 완료 시, 비밀번호 변경 가능하게.
+ - [X] nickname => email로 nickname 보내주기
+ - [X] password => 인증 완료 시, 비밀번호 변경 가능하게.
 
 ## 추가할 것.
  - [ ] 디자인 조금 더 손보기
