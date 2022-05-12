@@ -1,7 +1,7 @@
 # question!!!
 - DB에 connection한 후, connection을 끝내주지 않아도 되는건가?
 - 분명 connection을 끝내주지 않으면 이 요청이 계속 쌓여 문제가 생겨난다고 배운 것 같음.
-- 끝내주지 않아도 될까..?
+- 끝내주지 않아도 될까..? => pool connection으로 해결
 
 # Problem
 - [X] 1. socket.io에는 session이 없음. => 아무리 잘 해놓아봤자, 새로고침하면 초기화. 어떻게 할 것인가?
