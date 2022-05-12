@@ -1,3 +1,21 @@
+
+
+
+
+
+<!-- 로그인 코드 확인 필요
+submit이 안됨.
+-->
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -15,52 +33,6 @@
     <link href="bootstrap.css" rel="stylesheet">
     <meta name="theme-color" content="#7952b3">
     <script src="jQuery.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        let name;
-        const MSG = (who, msg, id) => {
-            if (who == 0) {
-                return `<div class="me"><div class="chat-me" id="${id}"><span class="fs-5 fw-semibold me">${msg}</span></div></div>`;
-            } else {
-                return `<div class="other"><div class="chat-other" id="${id}"><span class="fs-5 fw-semibold other">${msg}</span></div></div>`;
-            }
-        }
-        $(document).ready(function () {
-            $('#chat').on('submit', function (e) {
-                e.preventDefault();
-                socket.emit('send message', $('#name').val(), $('#message').val());
-                $('#message').val("");
-                $("#message").focus();
-            });
-            $('#name').on('change', function (e) {
-                let name = $('#name')
-                let read = name.attr('readonly');
-                if (read != 'readonly') {
-                    name.attr('readonly', '')
-                }
-            })
-        })
-        socket.on('receive message', function (msg, id) {
-            let who; // 본인인지 다른 사람인지 확인..
-            $('div.now-chat-content').append(MSG(who, msg, id));
-            $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
-        });
-        socket.on('receive type', function (data, id) {
-            value = $(`div.now-chat-content > div > #${id}`);
-            if (data == 0) {
-                value.css('background-color', 'green');
-            } else if (data == 1) {
-                value.css('background-color', 'yellow');
-            } else if (1 < data < 11) {
-                value.css('background-color', 'red');
-            }
-            $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
-        });
-        socket.on('change name', function (name) {
-            name = $('#name').val(name);
-        });
-    </script>
     <!-- Custom styles for this template -->
     <link href="sidebars.css" rel="stylesheet">
 </head>
@@ -75,13 +47,13 @@
                 </div>
 
                 <div class="modal-body p-5 pt-0">
-                    <form action="/signup" method="post">
+                    <form action="/login" method="post">
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control rounded-4" id="floatingInput" placeholder="Nickname" required>
+                            <input type="text" class="form-control rounded-4" id="floatingInput" placeholder="Nickname" name="name" required>
                             <label for="floatingInput">Nickname</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control rounded-4" id="floatingPassword" placeholder="Password" required>
+                            <input type="password" class="form-control rounded-4" id="floatingPassword" placeholder="Password" name="password" required>
                             <label for="floatingPassword">Password</label>
                         </div>
                         <div class="row">

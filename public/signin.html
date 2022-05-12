@@ -37,8 +37,7 @@
             display: none;
         }
     </style>
-    <script src="https://ssl.daumcdn.net/dmaps/map_js_init/postcode.v2.js"></script>
-	<script>
+    <script>
         $(document).ready(function(){
             $input_name = $('input#name');
             $('input#name').val( $('input#name').val().replace(/[^a-z0-9\-]/g, '') );
@@ -47,23 +46,87 @@
                 let nickname = name.val().replace(/[^a-z0-9\-]/g, '');
                 name.val( nickname );
             });
-            $(document).on('keyup', 'input#valid_pw', function(){
-                
-            })
-            // $(document).on('submit', 'form.needs-validation', function(event) {
-            //     event.preventDefault();
-            //     event.stopPropagation();
-            //     form = $('form.needs-validation');
-            //     form.addClass('was-validated');
-            //     if (form.checkValidity() && !func_verify_email() && func_same_name()) {
-            //         $('form.needs-validation').submit();
-            //     }
-            // })
+            $input_name.on('keyup',function(){
+                let name = $('input#name');
+                let nickname = name.val().replace(/[^A-Za-z0-9\-]/g, '');
+                name.val( nickname );
+            });
+            $(document).on('keyup', 'input#pw, input#valid_pw', function(){
+                let pw = $('input#pw').val();
+                let valid_pw = $('input#valid_pw').val();
+                let check_pw = (pw && pw == valid_pw) ? true : false;
+                if(check_pw !== true) {
+                    $('div#verify_pw').css('display', 'block');
+                    if($('input#pw').val().length < 8) {
+                        $('div#notallowed_pw').css('display', 'block');
+                    } else {
+                        $('div#notallowed_pw').css('display', 'none');
+                    }
+                } else {
+                    $('div#verify_pw').css('display', 'none');
+                    if($('input#pw').val().length < 8) {
+                        $('div#notallowed_pw').css('display', 'block');
+                    } else {
+                        $('div#notallowed_pw').css('display', 'none');
+                    }
+                }
+            });
+            $(document).on('submit', 'form.needs-validation', async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                form = await $('form')[0];
+                let check_form = await form.checkValidity();
+                let check_email = await func_same_email();
+                let check_verify_email = await func_verify_email();
+                let check_email_verify = await func_email_verify();
+                let check_name = await func_same_name();
+                let check_pw = await verify_pw();
+                if (!check_form || !check_email || !check_verify_email || !check_email_verify || !check_name || !check_pw) {
+                    if(!check_email) {
+                        alert('중복된 메일입니다.');
+                    } else if(!check_email_verify) {
+                        alert('메일인증을 진행해주세요!');
+                    } else if (!check_verify_email) {
+                        alert('메일인증 실패');
+                    } else if (!check_name) {
+                        alert('중복된 닉네임입니다.');
+                    } else if (!check_pw) {
+                        alert('비밀번호를 확인해주세요!');
+                    } else if (!check_form) {
+                        alert('개인정보 수집 동의 등 제출 형식에 맞지 않습니다.');
+                    }
+                } else {
+                    // $('form')[0].submit(); 이 안되는게 있길래 ajax로 직접 보냄
+                    await $.ajax({
+                        type: 'post',
+                        url: '/signin',
+                        data: {
+                            name: $('#name').val(),
+                            email: $('#email').val(),
+                            email_verify: $('#email_verify').val(),
+                            pw: $('#pw').val(),
+                            valid_pw: $('#valid_pw').val()
+                        },
+                        success: (data) => {
+                            if(data == 'success') {
+                                alert('회원가입에 성공하였습니다.');
+                                location.href = '/login';
+                            } else {
+                                alert(data);
+                            }
+                        },
+                        error: (err) => {
+                            alert('오류가 발생. 인터넷이 문제거나, 서버의 이상입니다.');
+                        }
+                    });
+                }
+            });
         })
-        const func_same_name = () => { // 닉네임 중복확인
+        const func_same_name = async() => { // 닉네임 중복확인
             let name = $('input#name').val();
             if(name) {
-                $.ajax({
+                let result;
+                await $.ajax({
                     type: 'post',
                     url: '/same_name',
                     data: { name },
@@ -71,30 +134,32 @@
                         if(data == 'success') {
                             $('#valid_same_name').css('display', 'block');
                             $('#invalid_same_name').css('display', 'none');
-                            return true;
+                            result = true;
                         } else if(data == 'fail') {
                             $('#valid_same_name').css('display', 'none');
                             $('#invalid_same_name').css('display', 'block');
-                            return false;
+                            result = false;
                         } else {
                             alert('오류가 발생');
-                            return false;
+                            result = false;
                         }
                     },
                     error: (err) => {
                         console.log(err)
-                        return false;
+                        result = false;
                     }
                 });
+                return await result;
             } else {
                 return false;
             }
         };
-        const func_same_email = () => { // 이메일 중복확인
+        const func_same_email = async() => { // 이메일 중복확인
             let email_element = $('input#email');
             let email = email_element.val();
             if(email && email_element[0].checkValidity()) {
-                $.ajax({
+                let result;
+                await $.ajax({
                     type: 'post',
                     url: '/same_email',
                     data: { email },
@@ -102,102 +167,111 @@
                         if(data == 'success') {
                             $('#empty_email').css('display', 'none');
                             $('#same_email').css('display', 'none');
-                            return true;
+                            result = true;
                         } else if(data == 'fail') {
                             $('#empty_email').css('display', 'none');
                             $('#same_email').css('display', 'block');
-                            return false;
+                            result = false;
                         } else {
                             alert('오류가 발생');
-                            return false;
+                            result = false;
                         }
                     },
                     error: (err) => {
                         console.log(err)
-                        return false;
+                        result = false;
                     }
                 });
-            }  else {
-                $('#empty_email').css('display', 'block');
-                return false;
-            }
-        };
-        const func_check_email = () => { // 인증메일 보내기
-            $('button#check_email').attr('disabled', true);
-            $('input#email').attr('disabled', true);
-            let email_element = $('input#email');
-            let email = email_element.val();
-            if(email && email_element[0].checkValidity()) {
-                $.ajax({
-                    type: 'post',
-                    url: '/check_email',
-                    data: { email },
-                    success: (data) => {
-                        console.log(data);
-                        if(data == 'success') {
-                            $('div.email_verify').css('display','block');
-                            $('button#verify_email').css('display','block');
-                            alert('이메일을 발송하였습니다. 10분 이내에 인증을 완료해주세요.');
-                            return true;
-                        } else if(data == 'fail') {
-                            $('div.email_verify').css('display','none');
-                            $('button#verify_email').css('display','none');
-                            return false;
-                        } else {
-                            alert('오류가 발생');
-                            return false;
-                        }
-                    },
-                    error: (err) => {
-                        console.log(err)
-                        return false;
-                    }
-                });
+                return result;
             } else {
-                return false;
+                $('#empty_email').css('display', 'block');
+                return await false;
             }
         };
-        const func_verify_email = () => { // 메일인증 확인하기
+        const func_check_email = async() => { // 인증메일 보내기
+            let issame = await func_same_email();
+            if(issame) {
+                $('button#check_email').attr('disabled', true);
+                $('input#email').attr('disabled', true);
+                let email_element = $('input#email');
+                let email = email_element.val();
+                if(email && email_element[0].checkValidity()) {
+                    let result;
+                    await $.ajax({
+                        type: 'post',
+                        url: '/check_email',
+                        data: { email },
+                        success: (data) => {
+                            if(data == 'success') {
+                                $('div.email_verify').css('display','block');
+                                $('button#verify_email').css('display','block');
+                                alert('이메일을 발송하였습니다. 10분 이내에 인증을 완료해주세요.');
+                                result = true;
+                            } else if(data == 'fail') {
+                                $('div.email_verify').css('display','none');
+                                $('button#verify_email').css('display','none');
+                                result = false;
+                            } else {
+                                alert('오류가 발생');
+                                result = false;
+                            }
+                        },
+                        error: (err) => {
+                            result = false;
+                        }
+                    });
+                    return await result;
+                } else {
+                    return false;
+                }
+            } else {
+                alert('이메일이 중복되었습니다.')
+            }
+        };
+        const func_verify_email = async() => { // 메일인증 확인하기
             let code = $('input#email_verify').val();
             let email_element = $('input#email');
             let email = email_element.val();
             if(email && email_element[0].checkValidity() && code) {
-                $.ajax({
+                let result;
+                await $.ajax({
                     type: 'post',
                     url: '/verify_email',
                     data: { email, code },
                     success: (data) => {
-                        console.log(data);
                         if(data == 'success') {
                             $('#valid_email_verify').css('display','block');
                             $('#invalid_email_verify').css('display','none');
                             $('input#email_verify').attr('disabled',true);
                             $('button#verify_email').attr('disabled',true);
-                            return true;
+                            result = true;
                         } else if(data == 'fail') {
                             $('#valid_email_verify').css('display','none');
                             $('#invalid_email_verify').css('display','block');
-                            return false;
+                            result = false;
                         } else {
                             alert('오류가 발생');
-                            return false;
+                            result = false;
                         }
                     },
                     error: (err) => {
-                        console.log(err)
-                        return false;
+                        result = false;
                     }
                 });
+                return await result;
             } else {
                 return false;
             }
         };
-        const valid_pw = () => {
+        const verify_pw = () => {
             let pw = $('input#pw').val();
             let valid_pw = $('input#valid_pw').val();
-            if(pw && pw == valid_pw && pw.length >= 8) return true;
+            if(pw && pw == valid_pw && $('input#pw').val().length >= 8) return true;
             else return false;
         };
+        const func_email_verify = () => {
+            return ($('div.email_verify').css('display') === "none") ? false : true;
+        }
         function debounce(callback, wait) {
             let timeout;
             return (...args) => {
@@ -211,7 +285,11 @@
             }, 1000));
             document.getElementById('email').addEventListener('keyup', debounce( () => {
                 func_same_email();
+                func_verify_email();
             }, 1000));
+            document.getElementById('email_verify').addEventListener('keyup', debounce( () => {
+                func_verify_email();
+            }))
         }
         
         </script>
@@ -226,7 +304,7 @@
 			<div class="row g-5" style="align-items: center;justify-content: center;">
 				<div class="col-md-7 col-lg-8">
 					<h4 class="mb-3">회원가입</h4>
-					<form class="needs-validation" novalidate="" method="post" action="/signin">
+					<form class="needs-validation was-validated" novalidate="" method="post" action="/signin">
 						<div class="row g-3">
 							<div class="col-12">
 								<label for="name" class="form-label">닉네임</label>
@@ -283,14 +361,14 @@
                                 <label for="email" class="form-label">비밀번호</label>
                                 <input type="password" id="pw" name="pw" class="form-control" minlength="8" required="">
                                 <div class="invalid-feedback" id="empty_pw">
-                                    비밀번호 칸이 비었습니다.
+                                    비밀번호 칸의 형식이 알맞지 않습니다.
                                 </div>
                                 <div class="invalid-feedback" id="notallowed_pw">
                                     비밀번호는 8자리 이상이어야합니다.
                                 </div>
                                 <input type="password" id="valid_pw" name="valid_pw" class="form-control" minlength="8" required="">
                                 <div class="invalid-feedback" id="notallowed_valid_pw">
-                                    비밀번호 확인 칸이 비었습니다.
+                                    비밀번호 확인 칸의 형식이 알맞지 않습니다.
                                 </div>
                             </div>
                             <div class="invalid-feedback" id="verify_pw">
@@ -302,7 +380,7 @@
 						<p class="lead" style="text-align:center;word-break: keep-all;">이용자가 제공한 모든 정보는 연구활동을 위해 활용되며, 목적 이외의 용도로는 사용되지 않습니다. 개인정보 수집, 이용, 제공하는 것에 동의합니다.</p>
 						<div class="my-3">
 							<div class="form-check">
-								<input id="yes" name="agree" type="radio" class="form-check-input" value="yes" required="">
+								<input id="agree" name="agree" type="radio" class="form-check-input" value="yes" required="">
 								<label class="form-check-label" for="yes">예</label>
                                 <div class="invalid-feedback">
                                     개인정보 동의서에 동의하지 않았습니다. 동의하지 않으면 해당 사이트를 이용하실 수 없습니다.
@@ -320,26 +398,5 @@
 		</footer>
 	</div>
 	<script src="bootstrap.js"></script>
-	<script>
-        // Example starter JavaScript for disabling form submissions if there are invalid fields
-        (function () {
-        'use strict'
-
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
-        var forms = document.querySelectorAll('.needs-validation')
-
-        // Loop over them and prevent submission
-        Array.prototype.slice.call(forms)
-            .forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity() || !func_verify_email() || !func_same_name()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-            })
-        })()
-    </script>
 </body>
 </html>

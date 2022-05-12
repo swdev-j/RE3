@@ -106,50 +106,6 @@
                     name_change.val(MY_NAME);
                 }
             })
-            $('div#chatLog').scroll(async function(){
-                if($('div#chatLog').scrollTop() == 0) {
-                    let id = $('div#chatLog > div > div.chat > div:eq(1)').attr('id');
-                    await $.ajax({
-                        type: 'post',
-                        url: '/add_content',
-                        data: { id },
-                        success: (data) => {
-                            if(typeof(data[0]) == 'object') {
-                                (data).forEach(element => {
-                                    let type = (element.type == -1) ? 'white' : (element.type == 0) ? 'green' : (element.type == 1) ? 'yellow' : 'red';
-                                    if(element.nickname == MY_NAME) {
-                                        $('div#chatLog').prepend(`<div class="me">
-                                            <div class="chat">
-                                                <div class="time text-muted">
-                                                    <span>${element.date}</span>
-                                                </div>
-                                                <div class="chat-me" id="${element.id}" style="background-color: ${type}">
-                                                    <span class="fs-5 fw-semibold me">${element.message}</span>
-                                                </div>
-                                            </div>
-                                        </div>`);
-                                    } else {
-                                        $('div#chatLog').prepend(`<div class="other">
-                                            <div class="other-user">
-                                                <span class="fw-semibold other">${element.nickname}</span>
-                                            </div>
-                                            <div class="chat">
-                                                <div class="chat-other" id="${element.id}" style="background-color: ${type}">
-                                                    <span class="fs-5 fw-semibold other">${element.message}</span>
-                                                </div>
-                                                <div class="time text-muted">
-                                                    <span>${element.date}</span>
-                                                </div>
-                                            </div>
-                                        </div>`);
-                                    }
-                                });
-                            }
-                        },
-                        error: (err) => {}
-                    });
-                }
-            });
         })
         socket.on('receive message', function (name, msg, id, time) {
             let who = (MY_NAME == name)?true:false; // 본인인지 다른 사람인지 확인..
@@ -190,37 +146,42 @@
         <main class="flex-column" style="position: relative;height: calc(100vh - 56px);overflow-x: hidden;overflow-y: hidden;flex-grow: 1;">
             <div class="now-chat-room" style="padding: 1rem;text-align: center;background-color: blueviolet;position: relative"><span class="fs-5 fw-semibold">채팅방1</span></div>
             <div id="chatLog" class="now-chat-content" style="overflow-y: auto;background-color: #9bbbd4;width: 100%;position: relative;height: 100%;flex-direction: column;display: flex;">
-                <% (list).forEach(element => {
-                    let type = (element.type == -1) ? 'white' : (element.type == 0) ? 'green' : (element.type == 1) ? 'yellow' : 'red';
-                    if(element.nickname == name) { 
-                        %>
-                        <div class="me">
-                            <div class="chat">
-                                <div class="time text-muted">
-                                    <span><%= element.date %></span>
-                                </div>
-                                <div class="chat-me" id="<%= element.id %>" style="background-color: <%= type %>">
-                                    <span class="fs-5 fw-semibold me"><%= element.message %></span>
-                                </div>
-                            </div>
+                <div class="other">
+                    <div class="other-user">
+                        <span class="fw-semibold other">user1</span>
+                    </div>
+                    <div class="chat">
+                        <div class="chat-other">
+                            <span class="fs-5 fw-semibold other">채팅내용1</span>
                         </div>
-                    <% } else { %>
-                        <div class="other">
-                            <div class="other-user">
-                                <span class="fw-semibold other"><%= element.nickname %></span>
-                            </div>
-                            <div class="chat">
-                                <div class="chat-other" id="<%= element.id %>" style="background-color: <%= type %>">
-                                    <span class="fs-5 fw-semibold other"><%= element.message %></span>
-                                </div>
-                                <div class="time text-muted">
-                                    <span><%= element.date %></span>
-                                </div>
-                            </div>
+                        <div class="time text-muted">
+                            <span>20:00</span>
                         </div>
-                    <% }
-                }); %>
-                
+                    </div>
+                </div>
+                <div class="other">
+                    <div class="other-user">
+                        <span class="fw-semibold other">user1</span>
+                    </div>
+                    <div class="chat">
+                        <div class="chat-other">
+                            <span class="fs-5 fw-semibold other">채팅내용2</span>
+                        </div>
+                        <div class="time text-muted">
+                            <span>20:01</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="me">
+                    <div class="chat">
+                        <div class="time text-muted">
+                            <span>20:03</span>
+                        </div>
+                        <div class="chat-me">
+                            <span class="fs-5 fw-semibold me">채팅내용17</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="post-chat" style="padding: 1rem;width: 100%;position: relative;bottom: 0;background-color: brown;">
                 <form id="chat">

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>2022RE</title>
+	<link href="bootstrap.css" rel="stylesheet">
+    <script src="jQuery.js"></script>
+    <style>
+		.bd-placeholder-img {
+			font-size: 1.125rem;
+			text-anchor: middle;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			user-select: none;
+		}
+		@media (min-width: 768px) {
+			.bd-placeholder-img-lg {
+			font-size: 3.5rem;
+			}
+		}
+		input.form-control {
+			width: 100%;
+			background-color: transparent;
+			border: none;
+			border-bottom: 1px solid #999;
+			font-size: 18px;
+			color: #000;
+			outline: none;
+		}
+        .container {
+            max-width: 960px;
+        }
+        #invalid_same_name, #valid_same_name, div.email_verify, #same_email, button#verify_email, #verify_pw {
+            display: none;
+        }
+    </style>
+    <script>
+        $(document).ready(function(){
+            $(document).on('keyup', 'input#pw, input#valid_pw', function(){
+                let pw = $('input#pw').val();
+                let valid_pw = $('input#valid_pw').val();
+                let check_pw = (pw && pw == valid_pw) ? true : false;
+                if(check_pw !== true) {
+                    $('div#verify_pw').css('display', 'block');
+                    if($('input#pw').val().length < 8) {
+                        $('div#notallowed_pw').css('display', 'block');
+                    } else {
+                        $('div#notallowed_pw').css('display', 'none');
+                    }
+                } else {
+                    $('div#verify_pw').css('display', 'none');
+                    if($('input#pw').val().length < 8) {
+                        $('div#notallowed_pw').css('display', 'block');
+                    } else {
+                        $('div#notallowed_pw').css('display', 'none');
+                    }
+                }
+            });
+            $(document).on('submit', 'form.needs-validation', async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                let form = $('form.needs-validation');
+                let id = form.attr('id');
+                let check_form = await $('input#email')[0].checkValidity() && $('input#email_verify')[0].checkValidity();
+                let check_verify_email = await func_verify_email();
+                let check_email_verify = await func_email_verify();
+                let check_pw = true;
+                if(id == 'PassTarget') {
+                    check_pw = await verify_pw();
+                    check_form = check_form && $('input#pw')[0].checkValidity() && $('input#valid_pw')[0].checkValidity();
+                }
+                if (!check_form || !check_verify_email || !check_email_verify || !check_pw) {
+                    if(!check_email_verify) {
+                        alert('메일인증을 진행해주세요!');
+                    } else if (!check_verify_email) {
+                        alert('메일인증 실패');
+                    } else if (!check_pw) {
+                        alert('비밀번호를 확인해주세요!');
+                    }
+                    console.log(check_form);
+                    console.log(check_verify_email);
+                    console.log(check_email_verify);
+                    console.log(check_pw);
+                } else {
+                    // $('form')[0].submit(); 이 안되는게 있길래 ajax로 직접 보냄
+                    await $.ajax({
+                        type: 'post',
+                        url: '/forget',
+                        data: id=='PassTarget'?{
+                            type: id,
+                            email: $('#email').val(),
+                            email_verify: $('#email_verify').val(),
+                            pw: $('#pw').val(),
+                            valid_pw: $('#valid_pw').val()
+                        }:{
+                            type: id,
+                            email: $('#email').val(),
+                            email_verify: $('#email_verify').val()
+                        },
+                        success: (data) => {
+                            if(data == 'success') {
+                                alert(id=='PassTarget'?'비밀번호 재설정이 완료되었습니다.':'email로 닉네임을 보냈습니다.');
+                                location.href = '/login';
+                            } else {
+                                alert(data);
+                            }
+                        },
+                        error: (err) => {
+                            alert('오류가 발생. 인터넷이 문제거나, 서버의 이상입니다.');
+                        }
+                    });
+                }
+            });
+        });
+        const func_same_email = async() => { // 이메일 중복확인
+            let email_element = $('input#email');
+            let email = email_element.val();
+            if(email && email_element[0].checkValidity()) {
+                let result;
+                await $.ajax({
+                    type: 'post',
+                    url: '/same_email',
+                    data: { email },
+                    success: (data) => {
+                        if(data == 'fail') {
+                            result = true;
+                        } else if(data == 'success') {
+                            result = false;
+                        } else {
+                            alert('오류가 발생');
+                            result = false;
+                        }
+                    },
+                    error: (err) => {
+                        console.log(err)
+                        result = false;
+                    }
+                });
+                return await result;
+            } else {
+                return false;
+            }
+        };
+        const func_check_email = async() => { // 인증메일 보내기
+            let email_element = await $('input#email');
+            let email = await email_element.val();
+            if(email && email_element[0].checkValidity()) {
+                let SameEmail = await func_same_email();
+                if(SameEmail) {
+                    $('button#check_email').attr('disabled', true);
+                    $('input#email').attr('disabled', true);
+                    let result;
+                    await $.ajax({
+                        type: 'post',
+                        url: '/check_email',
+                        data: { email },
+                        success: (data) => {
+                            if(data == 'success') {
+                                $('div.email_verify').css('display','block');
+                                $('button#verify_email').css('display','block');
+                                alert('이메일을 발송하였습니다. 10분 이내에 인증을 완료해주세요.');
+                                result = true;
+                            } else if(data == 'fail') {
+                                $('div.email_verify').css('display','none');
+                                $('button#verify_email').css('display','none');
+                                result = false;
+                            } else {
+                                alert('오류가 발생');
+                                result = false;
+                            }
+                        },
+                        error: (err) => {
+                            result = false;
+                        }
+                    });
+                    return await result;
+                } else {
+                    alert('가입되지 않은 메일입니다.');
+                    return false;
+                }
+            } else {
+                alert('이메일을 정확히 적어주세요');
+                return false;
+            }
+        };
+        const func_verify_email = async(val) => { // 메일인증 확인하기
+            let code = $('input#email_verify').val();
+            let email_element = $('input#email');
+            let email = email_element.val();
+            if(email && email_element[0].checkValidity() && code) {
+                let result;
+                await $.ajax({
+                    type: 'post',
+                    url: '/verify_email',
+                    data: { email, code },
+                    success: async (data) => {
+                        if(data == 'success') {
+                            $('#valid_email_verify').css('display','block');
+                            $('#invalid_email_verify').css('display','none');
+                            $('input#email_verify').attr('disabled',true);
+                            $('button#verify_email').attr('disabled',true);
+                            result = true;
+                            if(val) {
+                                alert('이메일 인증 완료!');
+                            }
+                        } else if(data == 'fail') {
+                            $('#valid_email_verify').css('display','none');
+                            $('#invalid_email_verify').css('display','block');
+                            result = false;
+                        } else {
+                            alert('오류가 발생');
+                            result = false;
+                        }
+                    },
+                    error: (err) => {
+                        result = false;
+                    }
+                });
+                return await result;
+            } else {
+                return false;
+            }
+        };
+        const verify_pw = () => {
+            let pw = $('input#pw').val();
+            let valid_pw = $('input#valid_pw').val();
+            if(pw && pw == valid_pw && $('input#pw').val().length >= 8) return true;
+            else return false;
+        };
+        const func_email_verify = () => {
+            return ($('div.email_verify').css('display') === "none") ? false : true;
+        }
+        const ChangeView = (data) => {
+            if(data == 'Nick') {
+                let Nick = document.getElementsByClassName('nick');
+                let Pass = document.getElementsByClassName('pass');
+                document.getElementsByClassName('needs-validation')[0].id = 'NameTarget';
+                for(let i=0; i<Nick.length; i++) Nick[i].style.display='block';
+                for(let i=0; i<Pass.length; i++) Pass[i].style.display='none';
+            } else if(data == 'Pass') {
+                let Nick = document.getElementsByClassName('nick');
+                let Pass = document.getElementsByClassName('pass');
+                let form = document.getElementsByClassName('needs-validation')[0].id = 'PassTarget';
+                for(let i=0; i<Nick.length; i++) Nick[i].style.display='none';
+                for(let i=0; i<Pass.length; i++) Pass[i].style.display='block';
+            }
+        }
+        function debounce(callback, wait) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(function () { callback.apply(this, args); }, wait);
+            };
+        }
+        window.onload = () => {
+            document.getElementById('email').addEventListener('keyup', debounce( () => {
+                func_verify_email(true);
+            }, 1000));
+            document.getElementById('email_verify').addEventListener('keyup', debounce( () => {
+                func_verify_email(true);
+            }))
+        }
+        
+    </script>
+</head>
+<body class="bg-light">
+	<div class="container">
+		<main>
+			<div class="py-5 text-center">
+				<h2>2022 R&amp;E</h2>
+				<p class="lead" style="text-align:center;word-break: keep-all;">이 페이지는 2022년 졸업논문 R&E 중 채팅을 위한 로그인 중<br>닉네임 또는 비밀번호를 분실 시, 찾는 페이지입니다.</p>
+			</div>
+            <div style="align-items: center;justify-content: center;" class="row g-5">
+                <div class="col-md-7 col-lg-8 d-flex">
+                <button class="w-100 btn btn-primary btn-lg find" type="button" name="nick" onclick="ChangeView('Nick')">닉네임 찾기</button>
+                <button class="w-100 btn btn-primary btn-lg find" type="button" name="password" onclick="ChangeView('Pass')">비밀번호 찾기</button>
+            </div></div>
+			<div class="row g-5" style="align-items: center;justify-content: center;">
+            	<div class="col-md-7 col-lg-8">
+                    <h4 class="mb-3 nick">닉네임 찾기</h4>
+					<h4 class="mb-3 pass" style="display:none">비밀번호 찾기</h4>
+					<form class="needs-validation was-validated" novalidate="" id="NameTarget" method="post">
+						<div class="row g-3">
+							<div class="col-12">
+                                <label for="email" class="form-label">이메일</label>
+                                <div class="row">
+                                    <div class="col-9">
+                                        <input type="email" pattern=".+@gsa\.hs\.kr" id="email" name="email" class="form-control" placeholder="ex. students@gsa.hs.kr" value="@gsa.hs.kr" required="">
+                                        <div class="invalid-feedback" id="empty_email">
+                                            이메일 칸이 비었습니다.
+                                        </div>
+                                        <div class="email_verify">
+                                            <input type="text" id="email_verify" name="email_verify" class="form-control" placeholder="이메일로 받은 암호" required="">
+                                            <div class="valid-feedback" id="valid_email_verify">
+                                                인증에 성공하였습니다.
+                                            </div>
+                                            <div class="invalid-feedback" id="invalid_email_verify">
+                                                인증에 실패하였습니다.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <button type="button" class="btn btn-primary" id="check_email" onclick="func_check_email()">인증 발송</button>
+                                        <button type="button" class="btn btn-primary" id="verify_email" onclick="func_verify_email(true)">인증</button>
+                                    </div>
+                                </div>
+                                <div class="link-danger">학교 계정(gsa.hs.kr만 등록할 수 있습니다.)</div>
+							</div>
+                            <div class="col-12 pass" id="password" style="display:none">
+                                <label for="email" class="form-label">비밀번호</label>
+                                <input type="password" id="pw" name="pw" class="form-control" minlength="8" required="">
+                                <div class="invalid-feedback" id="empty_pw">
+                                    비밀번호 칸의 형식이 알맞지 않습니다.
+                                </div>
+                                <div class="invalid-feedback" id="notallowed_pw">
+                                    비밀번호는 8자리 이상이어야합니다.
+                                </div>
+                                <input type="password" id="valid_pw" name="valid_pw" class="form-control" minlength="8" required="">
+                                <div class="invalid-feedback" id="notallowed_valid_pw">
+                                    비밀번호 확인 칸의 형식이 알맞지 않습니다.
+                                </div>
+                            </div>
+                            <div class="invalid-feedback" id="verify_pw">
+                                비밀번호가 알맞지 않습니다.
+                            </div>
+						</div>
+						<hr class="my-4">
+                        <button class="w-100 btn btn-primary btn-lg nick" type="submit">닉네임 찾기!</button>
+						<button class="w-100 btn btn-primary btn-lg pass" type="submit" style="display:none">비밀번호 변경!</button>
+					</form>
+				</div>
+			</div>
+		</main>
+		<footer class="my-5 pt-5 text-muted text-center text-small">
+			<p class="mb-1">© 2022. 404err-or all rights reserved.</p>
+		</footer>
+	</div>
+	<script src="bootstrap.js"></script>
+</body>
+</html>
