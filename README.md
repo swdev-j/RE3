@@ -69,7 +69,7 @@ const session_data = session({
 - [X] 이름 변경 막는 코드
 - [X] sql Object 완성하기
 - [X] sql injection 막기
-- [X] sql 사용하기.. => https://reddb.tistory.com/143
+- [X] sql 사용하기..
 - [X] sql 적용하기
 - [X] email 보내는거 테스트하기
 
