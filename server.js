@@ -394,18 +394,6 @@ db.sql_query('count_chat',[])
         }
     })
 
-// db.db.query('select id from re22_chat order by id desc limit 1;', function (err, rows, fields) {
-//     if (!err) {
-//         if(rows == []) {
-//             chat_id = 0;
-//         } else {
-//             chat_id = rows[0]['id'];
-//         }
-//     } else {
-//         console.log('query error : ' + err);
-//         console.log(err);
-//     }
-// });
 io.on('connection', function(socket) {
     console.log('user connected: ', socket.id);
     let name;
