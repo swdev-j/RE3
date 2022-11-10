@@ -4,13 +4,15 @@
 - 끝내주지 않아도 될까..? => pool connection으로 해결
 
 # Problem
-- [X] 1. socket.io에는 session이 없음. => 아무리 잘 해놓아봤자, 새로고침하면 초기화. 어떻게 할 것인가?
-- [X] 2. db를 node 실행 초기 한번만 connection 함. => 계속된 연결이 있지 않는 한, 연결이 끊김. 어떻게 해결할까?
+- [X] 1. socket.io에는 session이 없음. => 아무리 잘 해놓아봤자, 새로고침하면 초기화. 어떻게 할 것인가? [해결됨](#1-socketio에는-session이-없음)
+- [X] 2. db를 node 실행 초기 한번만 connection 함. => 계속된 연결이 있지 않는 한, 연결이 끊김. 어떻게 해결할까? [해결됨](#2-db-connection)<br>
   => mysql에 마지막 요청을 기준으로 wait_timeout의 시간이 경과하면 PROTOCOL_CONNECTION_LOST 오류 발생하며 connection 잃음.
+- [ ] 3. gmail이 보안 강화 정책으로 인해 nodemailer 로그인이 안됨. => Oauth 사용? [해결됨](#3-gmail-verify)
 
 
 # Solution
- 1. express-socket.io-session이란 모듈 찾음. 하지만, session을 초기에 지정해주어야 함.
+## 1. socket.io에는 session이 없음.
+ express-socket.io-session이란 모듈 찾음. 하지만, session을 초기에 지정해주어야 함.
 ``````
 const session = require('express-session');
 const session_data = session({
@@ -19,8 +21,11 @@ const session_data = session({
     saveUninitialized: true
 });
 ``````
- 2. mysql connection 대신 mysql pool을 쓰면 된다더라..?
+## 2. db connection
+ mysql connection 대신 mysql pool을 쓰면 된다더라..?
   [related link](https://stackoverflow.com/questions/20210522/nodejs-mysql-error-connection-lost-the-server-closed-the-connection)
+## 3. gmail verify
+ google 계정 설정에서 2단계 인증을 설정하고, 앱 비밀번호를 설정한 후, 비밀번호를 메일의 비밀번호 대신에 넣으면 해결됨.
 
 # todo
 ## index.html

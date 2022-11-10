@@ -1,0 +1,340 @@
+<html>
+	<head>
+		<title>광곽 시간표 검색기</title>
+		<meta charset="utf-8">
+		<link rel="shortcut icon" type="image/x-icon" href="gsa-logo.png">
+		<meta property="og:url" content="index.php"/>
+		<meta property="og:title" content="광곽 시간표 검색기"/>
+		<meta property="og:type" content="website">
+		<meta property="og:description" content="광곽 시간표 검색기"/>
+		<meta property="og:image" content="gsa-logo.png"/>
+		<link rel="stylesheet" href="type08.css">
+		<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+		<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+		<style>
+			input.search, button {
+				/* https://webclub.tistory.com/235 */
+				width: 200px; /* 원하는 너비설정 */
+				padding: .8em .5em; /* 여백으로 높이 설정 */
+				font-family: inherit;  /* 폰트 상속 */
+				/*background: url('e_arrow.jpg') no-repeat 95% 50%; /* 네이티브 화살표를 커스텀 화살표로 대체 */
+				border: 1px solid #999;
+				border-radius: 0px; /* iOS 둥근모서리 제거 */
+				-webkit-appearance: none; /* 네이티브 외형 감추기 */
+				-moz-appearance: none;
+				appearance: none;
+				margin: 20px 10px;
+				font-size: 14px; font-weight: bold;
+			}
+			.small {text-indent: 10px;}
+			#load {
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: 0;
+				position: fixed;
+				opacity: 0.8;background: white;
+				z-index: 99;
+				text-align: center;
+				display: grid;
+				place-items: center;
+			}
+			#load > img {
+				z-index: 100;
+			}
+		</style>
+		<script>
+			let data, class_list = [], check_class, class12 = ['1-1','1-2','1-3','1-4','1-5','1-6','2-1','2-2','2-3','2-4','2-5','2-6'];
+			$(window).on('load', function (){
+				$.ajax({
+					type: 'post',
+					url: 'http://10.122.2.173/data.php',
+					data: {'requests': 'data'},
+					datatype: 'json',
+					success: (result)=> {
+						if(result) {
+							data = result;
+                            check_class = JSON.parse(JSON.stringify(data));
+                            for(let i in check_class) {
+								let user_name = i;
+                                for(let j = 0; j < 9; j++) {
+                                    for(let k = 0; k<5; k++) {
+										if(check_class[i][j][k]) {
+											let type = i.split(' ')[0];
+                                            if(!isNaN(type)) { // 2, 3학년 학생
+                                                let class_name = check_class[i][j][k].slice(0,-6).replaceAll(' ','');
+												if(!class_list.includes(class_name)) {
+                                                    class_list.push(class_name);
+                                                }
+                                            } else if(type == '교사') { // 교사
+                                                let class_name = check_class[i][j][k].replaceAll(' ','').replace(/[1-2]-[1-6]/g,'');
+                                                if(class_name == "▷") class_name = check_class[i][j-1][k].replaceAll(' ','');
+												check_class[i][j][k] = class_name;
+                                                if(!class_list.includes(class_name)) {
+                                                    class_list.push(class_name);
+                                                }
+                                            } else if(type.match(/[1-2]-[1-6]/g) !== null) {
+												let class_name = check_class[i][j][k].split(' ')[0];
+												if(!class_list.includes(class_name)) {
+                                                    class_list.push(class_name);
+                                                }
+											}
+                                        }
+                                    }
+                                }
+                            }
+                            class_list = class_list.sort();
+							for(let i of class_list) {
+								$('datalist#class-list').append(`<option value="${i}">`);
+							}
+                            console.log(class_list);
+							$("#load").hide();
+						} else {
+							alert('오류가 발생했습니다. reload합니다.');
+							location.reload();
+						}
+					},
+					error: ()=> {
+						alert('오류가 발생했습니다. reload합니다.');
+						location.reload();
+					}
+				})
+			});
+			const print = function(names, finish_data) {
+				let result = `<table class = 'type08' id='table'>
+					<thead>
+						<tr>
+							<th id='search-name'>${names}</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th>
+						</tr>
+					</thead>
+				<tbody>`;
+				for(i = 0; i < 9; i ++) {
+					result += `<tr>
+						<th> ${i+1}교시</th>`;
+						for(j = 0; j<5; j ++) {
+							result += `<td>${finish_data[i][j]}</td>`;
+						}
+					result += '</tr>';
+				}
+				result += '</tbody></table>';
+				return result;
+			}
+			const search = function(type, param) {
+				let result = [['','','','',''],['','','','',''],['','','','',''],['','','','',''],['','','','',''],['','','','',''],['','','','',''],['','','','',''],['','','','','']];
+				param = param.trim();
+				if(type == 'schedule') {
+					if(param != '') {
+						for(let i in data) {
+							if(i.includes(param)) {
+								let user_name = i;
+								for(let j = 0; j < 9; j++) {
+									for(let k = 0; k<5; k++) {
+										result[j][k] = data[i][j][k];
+									}
+								}
+								return print(user_name,result);
+							}
+						}
+					}
+					if(result.map(e=> e.join('')).join('') == '') {
+						return '<table class = "type08" id = "table"><tbody><th>검색결과가 없습니다..</th></tbody></table>';
+					}
+				} else if(type == 'many') {
+					let name_list = [];
+					if(param != '') {
+						params = param.split(',');
+						for(let idx in params) {
+							let names = params[idx].trim();
+							if(names == '') continue;
+							for(let i in data) {
+								if(i.includes(names)) {
+									let user_name = i.slice(-3);
+									if(!name_list.includes(user_name)) {
+										name_list.push(user_name);
+										for(let j = 0; j < 9; j++) {
+											for(let k = 0; k<5; k++) {
+												if(data[i][j][k] != '') {
+													if(result[j][k] == '') {
+														result[j][k] += user_name;
+													} else {
+														result[j][k] += `, ${user_name}`;
+													}
+												}
+											}
+										}
+										break;
+									}
+								}
+							}
+						}
+                        if(result.map(e=> e.join('')).join('') == '') {
+                            return '<table class = "type08" id = "table"><tbody><th>검색결과가 없습니다..</th></tbody></table>';
+                        } else {
+                            return print('',result);
+                        }
+					}
+					if(result.map(e=> e.join('')).join('') == '') {
+						return '<table class = "type08" id = "table"><tbody><th>검색결과가 없습니다..</th></tbody></table>';
+					}
+				} else if(type == 'class') {
+					if(param != '') {
+						for(let i in check_class) {
+							let user_name = i.slice(-3).trim();
+							for(let j = 0; j < 9; j++) {
+								for(let k = 0; k < 5; k++) {
+									if(check_class[i][j][k]) {
+										let type = i.split(' ')[0];
+										if(!isNaN(type)) { // 2, 3학년 학생
+											let class_name = check_class[i][j][k].slice(0,-6).replaceAll(' ','');
+											if(class_name == param) {
+												if(result[j][k] == '') {
+													result[j][k] += user_name;
+												} else {
+													result[j][k] += `, ${user_name}`;
+												}
+											}
+										} else if(type == '교사') { // 교사
+											let class_name = check_class[i][j][k].replaceAll(' ','').replace(/[1-2]-[1-6]/g,'');
+											if(class_name == param) {
+												if(result[j][k] == '') {
+													result[j][k] += user_name;
+												} else {
+													result[j][k] = `${user_name}, ${result[j][k]}`;
+												}
+											}
+										} else if(type.match(/[1-2]-[1-6]/g) !== null) {
+											let class_name = check_class[i][j][k].split(' ')[0];
+											if(class_name == param) {
+												if(result[j][k] == '') {
+													result[j][k] += user_name;
+												} else {
+													result[j][k] += `, ${user_name}`;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+                        if(result.map(e=> e.join('')).join('') == '') {
+                            return '<table class = "type08" id = "table"><tbody><th>검색결과가 없습니다..</th></tbody></table>';
+                        } else {
+                            return print('',result);
+                        }
+					}
+					if(result.map(e=> e.join('')).join('') == '') {
+						return '<table class = "type08" id = "table"><tbody><th>검색결과가 없습니다..</th></tbody></table>';
+					}
+				} else {
+					return "error";
+				}
+			}
+			$(document).ready(function(){
+				$(document).on("change keyup paste", "input#search", function(e){
+					let name = $('#search').val().trim();
+					let b = $('input:radio[name="contact"]:checked');
+                    let c = b.val();
+                    $("table#table").remove();
+                    $("div#main").append('<table class = "type08" id = "table"><tbody><th>로딩중..</th></tbody></table>');
+                    $("table#table").remove();
+                    $("div#main").append(search(c, name));
+                });
+                $("#target").submit(function(event){
+                    event.preventDefault();
+                    let name = $('#search').val().trim();
+                    let b = $('input:radio[name="contact"]:checked');
+                    let c = b.val();
+                    $("table#table").remove();
+                    $("div#main").append('<table class = "type08" id = "table"><tbody><th>로딩중..</th></tbody></table>');
+                    $("table#table").remove();
+                    $("div#main").append(search(c, name));
+                });
+                $(document).on("click", 'input:radio[name="contact"]', function() {
+                    var e = $('input:radio[name="contact"]:checked');
+                    if(e.val() == 'many') {
+                        $('span#schedule').css('display','none');
+                        $('span#class').css('display','none');
+                        $('span#many').css('display','');
+						$('input#search').attr('list', '');
+                        let name = $('#search').val().trim();
+                        let b = $('input:radio[name="contact"]:checked');
+                        let c = b.val();
+                        $("table#table").remove();
+                        $("div#main").append('<table class = "type08" id = "table"><tbody><th>로딩중..</th></tbody></table>');
+                        $("table#table").remove();
+                        $("div#main").append(search(c, name));
+                    } else if(e.val() == 'schedule') {
+                        $('span#schedule').css('display','');
+                        $('span#many').css('display','none');
+                        $('span#class').css('display','none');
+						$('input#search').attr('list', '');
+                        let name = $('#search').val().trim();
+                        let b = $('input:radio[name="contact"]:checked');
+                        let c = b.val();
+                        $("table#table").remove();
+                        $("div#main").append('<table class = "type08" id = "table"><tbody><th>로딩중..</th></tbody></table>');
+                        $("table#table").remove();
+                        $("div#main").append(search(c, name));
+                    } else if(e.val() == 'class') {
+                        $('span#class').css('display','');
+                        $('span#schedule').css('display','none');
+                        $('span#many').css('display','none');
+						$('input#search').attr('list', 'class-list');
+                        let name = $('#search').val().trim().replaceAll(' ','');
+                        let b = $('input:radio[name="contact"]:checked');
+                        let c = b.val();
+                        $("table#table").remove();
+                        $("div#main").append('<table class = "type08" id = "table"><tbody><th>로딩중..</th></tbody></table>');
+                        $("table#table").remove();
+                        $("div#main").append(search(c, name));
+					}
+				})
+			});
+
+		</script>
+	</head>
+	<body style="font-family:Nanum Gothic;">
+		<div id="load"> <img src="./loading.gif" alt="loading"> </div>
+		<form id="target">
+			<input type="text" class="search" name="search" id="search" list="" placeholder="검색">
+			<datalist id="class-list">
+			</datalist>
+			<button type="submit" class="search" value="검색">검색</button>
+			<span id="schedule" style="display:block">&nbsp;&nbsp;<b>검색하고 싶은 반(ex 1-3), 학생 또는 선생님 이름을 입력하세요.</b></span>
+			<span id="many" style="display:none">&nbsp;&nbsp;<b>여러명 이름을 ,(콤마)로 구분해 입력해주세요.</b></span>
+			<span id="class" style="display:none">&nbsp;&nbsp;<b>검색하고 싶은 과목명(반까지 ex. 정보과학과 생활 1반)을 입력하세요. 새로 검색하려면 지우고 다시 검색하세요.</b></span>
+			<div>
+				<input type="radio" id="choice1" name="contact" value="schedule" checked>
+				<label for="choice1">개인 시간표</label>
+				<input type="radio" id="choice2" name="contact" value="many">
+				<label for="choice2">여러명 시간표</label>
+				<input type="radio" id="choice3" name="contact" value="class">
+				<label for="choice3">분반 시간표</label>
+			</div>
+		</form>
+		<div id="main">
+			<table class = "type08" id="table">
+				<thead>
+					<tr>
+						<th id="search-name"></th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th>
+					</tr>
+				</thead>
+				<tbody>
+                    <% for($i = 1; $i < 10; $i ++) {%>
+						<tr>
+							<th> <%=$i%>교시</th>
+							<% for($j = 0; $j<5; $j ++) {%>
+								<td></td>
+							<% }%>
+						</tr>
+					<% }%>
+				</tbody>
+			</table>
+		</div>
+		<footer>
+			<div style="float: right;margin-top: 0;margin-bottom: 1rem;">
+			</div>
+			<p>© 2022. 404err-or, 37-ESY all rights reserved.<br>* 2022-04-12 19:30 patched<br>* 2022-08-19 15:00 updated<br>* 2022-09-19 11:30 updated</p>
+		</footer>
+	</body>
+</html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,50 +11,61 @@
     <meta name="generator" content="Hugo 0.88.1">
 
     <link rel="canonical" href="localhost:5500">
-    
+
     <link href="bootstrap.css" rel="stylesheet">
     <meta name="theme-color" content="#7952b3">
     <script src="jQuery.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        div.chat-me, div.chat-other {
+        div.chat-me,
+        div.chat-other {
             background: #fff;
             border: 1px solid red;
             padding: .4rem;
             border-radius: 2rem;
             width: fit-content;
         }
-        span.me, span.other {
+
+        span.me,
+        span.other {
             word-break: break-all;
         }
+
         div.chat-other {
             border-top-left-radius: 0rem;
             float: left;
             margin-left: 1rem;
         }
+
         div.other {
             padding: .25rem;
             display: flex;
             flex-direction: column;
         }
+
         div.chat-me {
             border-top-right-radius: 0rem;
             float: right;
         }
+
         div.me {
             padding: .25rem;
         }
+
         div.other-user {
             border-top-left-radius: 0rem;
             float: left;
         }
+
         div.chat {
             flex-direction: row;
             display: flex;
         }
-        div.me > div.chat {
+
+        div.me>div.chat {
             float: right;
         }
+
         div.time {
             display: flex;
             align-items: flex-end;
@@ -64,7 +76,7 @@
         let name;
         const MY_NAME = "<%=name%>";
         const MSG = (who, name, msg, id, time) => {
-            if(who) {
+            if (who) {
                 return `<div class="me">
                     <div class="chat">
                         <div class="time text-muted">
@@ -91,35 +103,85 @@
                 </div>`;
             }
         }
-        $(document).ready(function(){
+        $(document).ready(function () {
             $('#chat').on('submit', function (e) {
                 e.preventDefault();
                 socket.emit('send message', MY_NAME, $('#message').val());
                 $('#message').val("");
                 $("#message").focus();
             });
-            $('#name').on('change',function(e){
+            $('#name').on('change', function (e) {
                 let name_change = $('#name')
                 let read = name_change.attr('readonly');
-                if(read != 'readonly') {
+                if (read != 'readonly') {
                     name_change.attr('readonly', '');
                     name_change.val(MY_NAME);
                 }
             })
+            $('div#chatLog').scroll(async function () {
+                if ($('div#chatLog').scrollTop() == 0) {
+                    let id = $('div#chatLog > div > div.chat > div').attr('id') || $(
+                        'div#chatLog > div > div.chat > div:eq(1)').attr('id');
+                    console.log(id);
+                    await $.ajax({
+                        type: 'post',
+                        url: '/add_content',
+                        data: {
+                            id
+                        },
+                        success: (data) => {
+                            if (typeof (data[0]) == 'object') {
+                                (data).forEach(element => {
+                                    let type = (element.type == -1) ? 'white' :
+                                        (element.type == 0) ? 'green' : (element
+                                            .type == 1) ? 'yellow' : 'red';
+                                    if (element.nickname == MY_NAME) {
+                                        $('div#chatLog').prepend(`<div class="me">
+                                            <div class="chat">
+                                                <div class="time text-muted">
+                                                    <span>${element.date}</span>
+                                                </div>
+                                                <div class="chat-me" id="${element.id}" style="background-color: ${type}">
+                                                    <span class="fs-5 fw-semibold me">${element.message}</span>
+                                                </div>
+                                            </div>
+                                        </div>`);
+                                    } else {
+                                        $('div#chatLog').prepend(`<div class="other">
+                                            <div class="other-user">
+                                                <span class="fw-semibold other">${element.nickname}</span>
+                                            </div>
+                                            <div class="chat">
+                                                <div class="chat-other" id="${element.id}" style="background-color: ${type}">
+                                                    <span class="fs-5 fw-semibold other">${element.message}</span>
+                                                </div>
+                                                <div class="time text-muted">
+                                                    <span>${element.date}</span>
+                                                </div>
+                                            </div>
+                                        </div>`);
+                                    }
+                                });
+                            }
+                        },
+                        error: (err) => {}
+                    });
+                }
+            });
         })
         socket.on('receive message', function (name, msg, id, time) {
-            let who = (MY_NAME == name)?true:false; // 본인인지 다른 사람인지 확인..
-            $('div.now-chat-content').append(MSG(who,name,msg,id,time));
+            let who = (MY_NAME == name) ? true : false; // 본인인지 다른 사람인지 확인..
+            $('div.now-chat-content').append(MSG(who, name, msg, id, time));
             $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
         });
         socket.on('receive type', function (data, id) {
             console.log(data, id);
             value = $(`div.now-chat-content > div > div.chat > #${id}`);
-            if(data == 0) {
+            if (data == 0) {
                 value.css('background-color', 'green');
-            } else if(data == 1) {
+            } else if (data == 1) {
                 value.css('background-color', 'yellow');
-            } else if(1< data < 11) {
+            } else if (1 < data < 11) {
                 value.css('background-color', 'red');
             }
             $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
@@ -131,6 +193,7 @@
     <!-- Custom styles for this template -->
     <link href="sidebars.css" rel="stylesheet">
 </head>
+
 <body style="display:flex;flex-direction: column;background-color: aqua;overflow: hidden;">
     <header>
         <nav class="navbar navbar-dark bg-primary" style="float: none;">
@@ -138,57 +201,59 @@
                 <a class="navbar-brand align-items-center text-center" href="#">2022re</a>
             </div>
             <div style="padding-right: 8px;">
-                <button type="button" onclick="location.href='/logout'" class="btn btn-success  my-2 my-sm-0">로그아웃</button>
+                <button type="button" onclick="location.href='/logout'"
+                    class="btn btn-success  my-2 my-sm-0">로그아웃</button>
             </div>
         </nav>
     </header>
     <div class="main d-flex flex-row">
-        <main class="flex-column" style="position: relative;height: calc(100vh - 56px);overflow-x: hidden;overflow-y: hidden;flex-grow: 1;">
-            <div class="now-chat-room" style="padding: 1rem;text-align: center;background-color: blueviolet;position: relative"><span class="fs-5 fw-semibold">채팅방1</span></div>
+        <main class="flex-column"
+            style="position: relative;height: calc(100vh - 56px);overflow-x: hidden;overflow-y: hidden;flex-grow: 1;">
+            <div class="now-chat-room"
+                style="padding: 1rem;text-align: center;background-color: blueviolet;position: relative"><span
+                    class="fs-5 fw-semibold">채팅방1</span></div>
             <div id="chatLog" class="now-chat-content" style="overflow-y: auto;background-color: #9bbbd4;width: 100%;position: relative;height: 100%;flex-direction: column;display: flex;">
-                <div class="other">
-                    <div class="other-user">
-                        <span class="fw-semibold other">user1</span>
-                    </div>
-                    <div class="chat">
-                        <div class="chat-other">
-                            <span class="fs-5 fw-semibold other">채팅내용1</span>
-                        </div>
-                        <div class="time text-muted">
-                            <span>20:00</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="other">
-                    <div class="other-user">
-                        <span class="fw-semibold other">user1</span>
-                    </div>
-                    <div class="chat">
-                        <div class="chat-other">
-                            <span class="fs-5 fw-semibold other">채팅내용2</span>
-                        </div>
-                        <div class="time text-muted">
-                            <span>20:01</span>
-                        </div>
-                    </div>
-                </div>
+                <% (list).forEach(element => {
+                    let type = (element.type == -1) ? 'white' : (element.type == 0) ? 'green' : (element.type == 1) ? 'yellow' : 'red';
+                    if(element.nickname == name) {
+                        %>
                 <div class="me">
                     <div class="chat">
                         <div class="time text-muted">
-                            <span>20:03</span>
+                            <span><%= element.date %></span>
                         </div>
-                        <div class="chat-me">
-                            <span class="fs-5 fw-semibold me">채팅내용17</span>
+                        <div class="chat-me" id="<%= element.id %>" style="background-color: <%=type%>">
+                            <span class="fs-5 fw-semibold me"><%= element.message %></span>
                         </div>
                     </div>
                 </div>
+                <% } else { %>
+                <div class="other">
+                    <div class="other-user">
+                        <span class="fw-semibold other"><%= element.nickname %></span>
+                    </div>
+                    <div class="chat">
+                        <div class="chat-other" id="<%= element.id %>" style="background-color: <%= type %>">
+                            <span class="fs-5 fw-semibold other"><%= element.message %></span>
+                        </div>
+                        <div class="time text-muted">
+                            <span><%= element.date %></span>
+                        </div>
+                    </div>
+                </div>
+                <% }
+                }); %>
+
             </div>
-            <div class="post-chat" style="padding: 1rem;width: 100%;position: relative;bottom: 0;background-color: brown;">
+            <div class="post-chat"
+                style="padding: 1rem;width: 100%;position: relative;bottom: 0;background-color: brown;">
                 <form id="chat">
                     <div class="chat-text" style="display: flex;">
                         <input id="name" class="name" type="text" readonly>
-                        <input id="message" class="message" type="text" name="post-chat-content" id="post-chat-content" style="width: 90%;border: 1px solid red;padding: .5rem;border-top-left-radius: 2rem;border-bottom-left-radius: 2rem;">
-                        <input class="chat" type="submit" value="전송" style="border: 1px solid red;padding: .5rem;border-top-right-radius: 2rem;border-bottom-right-radius: 2rem;">
+                        <input id="message" class="message" type="text" name="post-chat-content" id="post-chat-content"
+                            style="width: 90%;border: 1px solid red;padding: .5rem;border-top-left-radius: 2rem;border-bottom-left-radius: 2rem;">
+                        <input class="chat" type="submit" value="전송"
+                            style="border: 1px solid red;padding: .5rem;border-top-right-radius: 2rem;border-bottom-right-radius: 2rem;">
                     </div>
                 </form>
             </div>
@@ -196,4 +261,5 @@
     </div>
     <script src="./bootstrap.js" crossorigin="anonymous"></script>
 </body>
+
 </html>

@@ -10,8 +10,8 @@ const xss = require('xss'); // XSS 방지
 const session = require('express-session');
 const ios = require("express-socket.io-session");
 const axios = require("axios");
-const db = require("./db");
-const { Auth, sendmail, sendNameMail } = require("./email");
+const db = require("./model/db");
+const { Auth, sendmail, sendNameMail } = require("./model/email");
 require('dotenv').config();
 const session_data = session({
     secret: process.env.SESSION_SECRET,
@@ -19,13 +19,61 @@ const session_data = session({
     saveUninitialized: true
 });
 
+let Meal = {}
+
 const getHtml = async (text) => {
     try {
-        return await axios.get("https://spocjaxkrk.execute-api.ap-northeast-2.amazonaws.com/v1/detect?comment="+encodeURIComponent(text));
+        return await axios.get("https://spocjaxkrk.execute-api.ap-northeast-2.amazonaws.com/v1/detect?comment="+encodeURIComponent(text.replace(/[^ㄱ-ㅎ가-힣ㅏ-ㅣ ]/g, '')));
     } catch (error) {
         console.error(error);
     }
 };
+
+const getMealHttp = async (value) => {
+    try {
+        return await axios.get('https://school.iamservice.net/api/article/organization/5698?next_token=0')
+            .then(html => html.data.articles)
+            .then((req) => {
+                let command = [value+'[아침]', value+'[점심]', value+'[저녁]'];
+                let res = req.filter(e=> command.includes(e['title'])).reverse();
+                let result = command.slice();
+                for(let i in command) {
+                    let val = res.filter(e=> e['title'] == command[i]);
+                    if(val.length) {
+                        result[i] += '\n' + val[0]['content'].replace(/\d\d\./g,'').replace(/\d\./g,'');
+                    } else {
+                        result[i] += '\n급식이 없거나 급식을 찾지 못했습니다.';
+                    }
+                }
+                Meal[value] = result.join('\n\n');
+                return Meal[value];
+            })
+            .catch((e)=>{
+                console.log(e);
+            })
+    } catch(e) {
+        console.log(`오류 발생: ${e}`);
+    }
+}
+
+const getMeal = async (mealtype) => {
+    if(mealtype.endsWith('급식')) {
+        let type = mealtype.replace(/ /g, '').slice(0,-2);
+        let plus;
+        if(type == '오늘') plus = 0;
+        else if(type == '내일') plus = 1;
+        else if(type == '모레' || type == '모래') plus = 2;
+        let date = new Date();
+        date.setDate(date.getDate() + plus);
+        let value = date.getMonth()+1 + '월 ' + date.getDate() + '일 '
+        if(!Meal[value]) {
+            let result = await getMealHttp(value);
+            return [`${value}급식`, result];
+        } else {
+            return [`${value}급식`, Meal[value]];
+        }
+    }
+}
 
 console.log(__dirname)
 app.set("view engine", "ejs");
@@ -39,7 +87,7 @@ io.use(ios(
     session_data, {
         autoSave: true
     }
-))
+));
 
 let email_verify = {};
 
@@ -73,7 +121,7 @@ app.get("/login", function(req,res){ // login site
 
 app.post("/login", function(req,res){ // login site
     if(req.session.name) {
-        console.log(req.session)
+        console.log(req.session);
         res.redirect("/");
     } else {
         if(req.body && req.body.name && req.body.password) {
@@ -184,11 +232,11 @@ app.post('/same_email', function(req, res){ // check if the email of the same ex
         })
 });
 
-app.get("/signin", function(req,res){ // siginin site
-    res.sendFile(__dirname + "/public/signin.html");
+app.get("/signup", function(req,res){ // siginin site
+    res.sendFile(__dirname + "/public/signup.html");
 });
 
-app.post("/signin", function(req,res){
+app.post("/signup", function(req,res){
     let name = req.body.name;
     let email = req.body.email;
     let code = req.body.email_verify;
@@ -313,6 +361,28 @@ app.post("/forget", function(req,res){
     }
 });
 
+app.get("/modal", async function(req,res){ // new tab
+    if(!req.session.name) {
+        res.redirect("/login");
+    } else {
+        let value = req.query.value;
+        if(['급식', '오늘급식', '오늘 급식'].includes(value)) {
+            let meal = await getMeal('오늘급식');
+            res.render("modal", {title: meal[0], data:meal[1]});
+        } else if(['내일급식', '내일 급식'].includes(value)) {
+            let meal = await getMeal('내일급식');
+            res.render("modal", {title: meal[0], data:meal[1]});
+        } else if(['모레급식', '모레 급식'].includes(value)) {
+            let meal = await getMeal('모레급식');
+            res.render("modal", {title: meal[0], data:meal[1]});
+        } else if(value == '시간표') {
+            res.render('timetable');
+        } else {
+            res.render('error');
+        }
+    }
+});
+
 let chat_id = 0;
 let chat_before = 0;
 db.sql_query('count_chat',[])
@@ -355,9 +425,8 @@ io.on('connection', function(socket) {
         let chk_name = socket.handshake.session.name;
         let time = new Date().toString().split(' ')[4];
         if(name == chk_name) {
-            chat_id++;
             if(text.trim() !== ''){
-                let id = chat_id;
+                let id = ++chat_id;
                 let req_text = xss(text);
                 io.emit('receive message', name, req_text, id, time);
                 db.sql_query('insert_data', [name, req_text, -1]);
@@ -368,7 +437,8 @@ io.on('connection', function(socket) {
                     .then(type => {
                         console.log(id, msg, type);
                         io.emit('receive type', type, id);
-                        db.sql_query('insert_type', [type, id]);
+                        db.sql_query('insert_type', [type, id])
+                            .then((result)=>console.log(result))
                     })
                     .catch(err => console.log(err))
             }
