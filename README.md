@@ -7,7 +7,7 @@
 - [X] 1. socket.io에는 session이 없음. => 아무리 잘 해놓아봤자, 새로고침하면 초기화. 어떻게 할 것인가? [해결됨](#1-socketio에는-session이-없음)
 - [X] 2. db를 node 실행 초기 한번만 connection 함. => 계속된 연결이 있지 않는 한, 연결이 끊김. 어떻게 해결할까? [해결됨](#2-db-connection)<br>
   => mysql에 마지막 요청을 기준으로 wait_timeout의 시간이 경과하면 PROTOCOL_CONNECTION_LOST 오류 발생하며 connection 잃음.
-- [ ] 3. gmail이 보안 강화 정책으로 인해 nodemailer 로그인이 안됨. => Oauth 사용? [해결됨](#3-gmail-verify)
+- [X] 3. gmail이 보안 강화 정책으로 인해 nodemailer 로그인이 안됨. => Oauth 사용? [해결됨](#3-gmail-verify)
 
 
 # Solution
@@ -81,4 +81,4 @@ const session_data = session({
  - [ ] 디자인 조금 더 손보기
  - [ ] 추가 채팅방
  - [ ] 이벤트(생일 이벤트, 복불복 등등)
- - [ ] 급식 등등 키워드 모달창
+ - [X] 급식 등등 키워드 모달창
