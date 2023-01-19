@@ -24,12 +24,12 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/404err-or/RE3.git"
+		"url": "git+https://github.com/swdev-j/RE3.git"
 	},
 	"author": "",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/404err-or/RE3/issues"
+		"url": "https://github.com/swdev-j/RE3/issues"
 	},
-	"homepage": "https://github.com/404err-or/RE3#readme"
+	"homepage": "https://github.com/swdev-j/RE3#readme"
 }
